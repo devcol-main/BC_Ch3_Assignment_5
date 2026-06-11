@@ -28,18 +28,25 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent* CameraComp = nullptr;
 	
-
-
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
+	// 현재 체력을 가져오는 함수
+	UFUNCTION(BlueprintPure, Category = "Health")
+	float GetHealth() const;
+		
+	// 체력을 회복시키는 함수
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void AddHealth(float Amount);
 	
-	// Called every frame
-	//virtual void Tick(float DeltaTime) override;
-
 protected:
-
 	
+	// === Variables ===
+	// 최대 체력
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float  MaxHealth;
+	// 현재 체력
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Health")
+	float  Health;
+	
+	// = Movements
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float NormalSpeed; // 기본 걷기 속도
 	
@@ -50,15 +57,10 @@ protected:
 	float SprintSpeed; 	// 실제 스프린트 속도 SprintSpeed= NormalSpeed * SprintSpeedMultiplier
 	
 	
+	// =====	
 	
 	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-	//여기서 인자값을 참조로 받는 이유는 구조체는 크기때문에 참조를 안하고 직접 가져오면 복사비용이 커서 성능 저하 문제가 발생합니다
-	// IA_Move와 IA_Jump 등을 처리할 함수 원형
-    // Enhanced Input에서 액션 값은 FInputActionValue로 전달됩니다.
-	// UFUNCTION()을 붙이지 않으면 바인딩에 실패할 수 있습니다.
-	// 블루프린트 접근성을 설정하지 않았더라도, 기본적으로 메타데이터가 생성됩니다.
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;	
 	
 	UFUNCTION()
 	void Move(const FInputActionValue& value);
@@ -78,5 +80,19 @@ protected:
 	void StartSprint(const FInputActionValue& value);
 	UFUNCTION()
 	void StopSprint(const FInputActionValue& value);
+	
+	
+	// 사망 처리 함수 (체력이 0 이하가 되었을 때 호출)
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	virtual void OnDeath();
+
+	// 데미지 처리 함수 - 외부로부터 데미지를 받을 때 호출됨
+	// 또는 AActor의 TakeDamage()를 오버라이드
+	virtual float TakeDamage(
+		float DamageAmount,
+		struct FDamageEvent const& DamageEvent, // Damage 관련 추가 정보 (예: Skill 속성에 따른 반응) 
+		AController* EventInstigator, //데미지를 발생 시킨 주체
+		AActor* DamageCauser // 데미지를 일으킨 오브젝트
+		) override;
 	
 };

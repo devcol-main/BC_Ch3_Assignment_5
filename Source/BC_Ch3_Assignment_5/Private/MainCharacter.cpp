@@ -1,9 +1,7 @@
 
 #include "MainCharacter.h"
-
-//
 #include "EnhancedInputComponent.h"
-#include "InputActionValue.h"
+//#include "InputActionValue.h"
 #include "MainPlayerController.h"
 
 // 카메라, 스프링 암 실제 구현이 필요한 경우라서 include
@@ -13,13 +11,12 @@
 
 //
 #include "GameFramework/CharacterMovementComponent.h" // GetCharacterMovement() 사용을 위해
-
+#include "GameFramework/Actor.h"
+#include "Kismet/GameplayStatics.h"
 
 AMainCharacter::AMainCharacter()
-{
- 	
-	PrimaryActorTick.bCanEverTick = false;
-	
+{ 	
+	PrimaryActorTick.bCanEverTick = false;	
 	
 	// (1) 스프링 암 생성
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -51,21 +48,12 @@ AMainCharacter::AMainCharacter()
 	// MaxWalkSpeed 변경시 캐릭터 이동속도가 즉시 변경
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 	
-}
-
-// Called when the game starts or when spawned
-void AMainCharacter::BeginPlay()
-{
-	Super::BeginPlay();
 	
+	// 초기 체력 설정
+	MaxHealth = 100.0f;
+	Health = MaxHealth;
 }
 
-// Called every frame
-/*void AMainCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}*/
 
 // Called to bind functionality to input
 void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -219,3 +207,67 @@ void AMainCharacter::StopSprint(const FInputActionValue& value)
 		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 	}
 }
+
+
+float AMainCharacter::GetHealth() const
+{
+	return Health;
+}
+
+// 체력 회복 함수
+void AMainCharacter::AddHealth(float  Amount)
+{
+	// 체력을 회복시킴. 최대 체력을 초과하지 않도록 제한함
+	Health = FMath::Clamp(Health + Amount, 0.0f, MaxHealth);
+	//UE_LOG(LogTemp, Log, TEXT("Health increased to: %f"), Health);
+	
+	/*
+	if (GEngine)
+	{ 
+		GEngine->AddOnScreenDebugMessage(
+				-1, 2.f, FColor::Green,
+				 TEXT("Health Increased to: %f"), Health);
+	}*/
+}
+
+// 데미지 처리 함수
+float  AMainCharacter::TakeDamage(float  DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	// 기본 데미지 처리 로직 호출 (필수는 아님)
+	int32 ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	// 체력을 데미지만큼 감소시키고, 0 이하로 떨어지지 않도록 Clamp
+	Health = FMath::Clamp(Health - DamageAmount, 0.0f, MaxHealth);
+	//UE_LOG(LogTemp, Warning, TEXT("Health decreased to: %f"), Health);
+	/*if (GEngine)
+	{ 
+		GEngine->AddOnScreenDebugMessage(
+				-1, 2.f, FColor::Yellow,
+				 TEXT("Health decreased to: %f"), Health);
+	}
+	*/
+
+	// 체력이 0 이하가 되면 사망 처리
+	if (Health <= 0.0f)
+	{
+		OnDeath();
+	}
+
+	// 실제 적용된 데미지를 반환
+	return ActualDamage;
+}
+
+// 사망 처리 함수
+void AMainCharacter::OnDeath()
+{
+	//UE_LOG(LogTemp, Error, TEXT("Character is Dead!"));
+	if (GEngine)
+	{ 
+		GEngine->AddOnScreenDebugMessage(
+				-1, 2.f, FColor::Red,
+				 TEXT("Character is Dead!"));
+	}
+
+	// 사망 후 로직
+}
+
