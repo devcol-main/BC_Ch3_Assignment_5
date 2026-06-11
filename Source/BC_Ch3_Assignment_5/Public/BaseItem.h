@@ -6,6 +6,8 @@
 
 #include "BaseItem.generated.h"
 
+class USphereComponent;
+
 UCLASS()
 class BC_CH3_ASSIGNMENT_5_API ABaseItem : public AActor, public IItemInterface
 {
@@ -20,12 +22,37 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	FName ItemType;
 	
-	virtual void OnItemOverlap(AActor* OverlapActor) override;
-	virtual void OnItemEndOverlap(AActor* OverlapActor) override;
+	// 루트 컴포넌트 (씬)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Component")
+	USceneComponent* Scene;
+	// 충돌 컴포넌트 (플레이어 진입 범위 감지용)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Component")
+	USphereComponent* Collision;
+	// 아이템 시각 표현용 스태틱 메시
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Component")
+	UStaticMeshComponent* StaticMesh;
+	
+	virtual void OnItemOverlap(
+			UPrimitiveComponent* OverlappedComp,
+			AActor* OtherActor,
+			UPrimitiveComponent* OtherComp,
+			int32 OtherBodyIndex,
+			bool bFromSweep,
+			const FHitResult& SweepResult) override;
+	
+	virtual void OnItemEndOverlap(
+			UPrimitiveComponent* OverlappedComp,
+			AActor* OtherActor,
+			UPrimitiveComponent* OtherComp,
+			int32 OtherBodyIndex) override;
+	
 	virtual void ActivateItem(AActor* Activator) override;
 	virtual FName GetItemType() const override;
 	
 	// 아이템을 제거하는 공통 함수 (추가 이펙트나 로직을 넣을 수 있음)
 	virtual void DestroyItem();
+	
+private:
+	const FName CollisionProfile_OverlapAllDynamic = TEXT("OverlapAllDynamic");
 
 };

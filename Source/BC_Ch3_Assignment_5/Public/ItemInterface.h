@@ -15,7 +15,6 @@ class UItemInterface : public UInterface
 class BC_CH3_ASSIGNMENT_5_API IItemInterface
 {
 	GENERATED_BODY()
-
 	
 public:
 	// 구현할 아이템 종류 지뢰 , 힐링, 코인
@@ -24,9 +23,25 @@ public:
 	
 	
 	// 플레이어가 이 아이템의 범위에 들어왔을 때 호출
-	virtual void OnItemOverlap(AActor* OverlapActor) = 0;
+	UFUNCTION()
+	virtual void OnItemOverlap(
+			UPrimitiveComponent* OverlappedComp, // 자기 자신 (원형) // 현재: 아이템
+			AActor* OtherActor, // 부딪힌 Actor // 현재: 플레이어
+			UPrimitiveComponent* OtherComp, // 부딪힌 Actor에 붙어있던 1차적으로 충돌을 일으킨 원인인 컴포넌트
+			int32 OtherBodyIndex,
+			bool bFromSweep,
+			const FHitResult& SweepResult) = 0;
+	
+	
 	// 플레이어가 이 아이템의 범위를 벗어났을 때 호출
-	virtual void OnItemEndOverlap(AActor* OverlapActor) = 0;
+	UFUNCTION()
+	virtual void OnItemEndOverlap(
+			UPrimitiveComponent* OverlappedComp,
+			AActor* OtherActor,
+			UPrimitiveComponent* OtherComp,
+			int32 OtherBodyIndex) = 0;
+	
+	
 	// 아이템이 사용되었을 때 호출
 	virtual void ActivateItem(AActor* Activator) = 0;
 	// 이 아이템의 유형(타입)을 반환 (예: "Coin", "Mine" 등)

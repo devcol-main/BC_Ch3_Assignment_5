@@ -13,15 +13,30 @@ class BC_CH3_ASSIGNMENT_5_API AMineItem : public ABaseItem
 public:
 	AMineItem();
 	
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
+	USphereComponent* ExplosionCollision;
+	
 	// 폭발까지 걸리는 시간
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Mine")
 	float ExplosionDelay;
+	
 	// 폭발 범위
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Mine")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mine")
 	float ExplosionRadius;
+
 	// 폭발 데미지
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Mine")
-	float ExplosionDamage;
+	int ExplosionDamage;
+	
+	// 지뢰 발동 여부
+	FTimerHandle ExplosionTimerHandle;
 
 	virtual void ActivateItem(AActor* Activator) override;
+	
+	void Explode();
+	
+
+private:
+	const FName CollisionProfile_OverlapAllDynamic = TEXT("OverlapAllDynamic");
 };
