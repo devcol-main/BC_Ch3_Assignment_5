@@ -1,7 +1,8 @@
 #include "MainPlayerController.h"
-
-// Enhanced Input System의 Local Player Subsystem을 사용하기 위해 포함
 #include "EnhancedInputSubsystems.h"
+#include "EnhancedInputSubsystems.h" // Enhanced Input System의 Local Player Subsystem을 사용하기 위해 포함
+#include "MainGameState.h"
+#include "Blueprint/UserWidget.h"
 
 // 어차피 블루프린트 상에서 전부 다 초기화를 하기 때문에 여기서는 전부 다 nullptr 처리
 AMainPlayerController::AMainPlayerController()
@@ -9,15 +10,17 @@ AMainPlayerController::AMainPlayerController()
 	  MoveAction(nullptr),
 	  JumpAction(nullptr),
 	  LookAction(nullptr),
-	  SprintAction(nullptr)
+	  SprintAction(nullptr),
+	  HUDWidgetClass(nullptr),
+	  HUDWidgetInstance(nullptr)
 
-{	
+{
 }
 
 void AMainPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	// GetLocalPlayer():현재 PlayerController에 연결된 Local Player 객체를 가져옴     
 	// Local Player 는 그 플레이어의 입력이나 화면 뷰 같은 것을 관리하는 어떤 객체
 	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
@@ -35,6 +38,25 @@ void AMainPlayerController::BeginPlay()
 			}
 		}
 	}
+
+	// HUD 위젯 생성 및 표시
+	if (HUDWidgetClass)
+	{
+		HUDWidgetInstance = CreateWidget<UUserWidget>(this, HUDWidgetClass);
+		if (HUDWidgetInstance)
+		{
+			HUDWidgetInstance->AddToViewport();
+		}
+	}
 	
+	AMainGameState* MainGameState = GetWorld() ? GetWorld()->GetGameState<AMainGameState>() : nullptr;
+	if (MainGameState)
+	{
+		MainGameState->UpdateHUD();
+	}
 }
 
+UUserWidget* AMainPlayerController::GetHUDWidget() const
+{
+	return HUDWidgetInstance;
+}

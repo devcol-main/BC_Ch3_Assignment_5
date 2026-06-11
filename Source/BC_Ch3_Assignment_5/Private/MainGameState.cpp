@@ -1,8 +1,11 @@
 #include "MainGameState.h"
 #include "MainGameInstance.h"
+#include "MainPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "SpawnVolume.h"
 #include "CoinItem.h"
+#include "Components/TextBlock.h"
+#include "Blueprint/UserWidget.h"
 
 AMainGameState::AMainGameState()
 {
@@ -20,6 +23,16 @@ void AMainGameState::BeginPlay()
 
 	// 게임 시작 시 첫 레벨부터 진행
 	StartLevel();
+	
+	UpdateHUD();
+	
+	GetWorldTimerManager().SetTimer(
+			HUDUpdateTimerHandle,
+			this,
+			&AMainGameState::UpdateHUD,
+			0.1f,
+			true
+		);
 }
 
 int32 AMainGameState::GetScore() const
@@ -149,6 +162,50 @@ void AMainGameState::EndLevel()
 
 void AMainGameState::OnGameOver()
 {
+	UpdateHUD();
 	UE_LOG(LogTemp, Warning, TEXT("Game Over!!"));
 	// 여기서 UI를 띄운다거나, 재시작 기능을 넣을 수도 있음
+}
+
+void AMainGameState::UpdateHUD()
+{
+	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+	{
+		AMainPlayerController* MainPlayerController = Cast<AMainPlayerController>(PlayerController);
+		{
+			if (UUserWidget* HUDWidget = MainPlayerController->GetHUDWidget())
+			{
+				// requires
+				// #include "Components/TextBlock.h"
+				// #include "Blueprint/UserWidget.h"
+				
+				//추후 변경 방안 
+				// UPROPERTY(meta = (BindWidget))
+				// class UButton* MyAwesomeButton;
+				if (UTextBlock* TimeText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("Time"))))
+				{
+					float RemainingTime = GetWorldTimerManager().GetTimerRemaining(LevelTimerHandle);
+					TimeText->SetText(FText::FromString(FString::Printf(TEXT("Time: %.1f"), RemainingTime)));
+				}
+				
+				//
+				if (UTextBlock* ScoreText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("Score"))))
+				{
+					if (UGameInstance* GameInstance = GetGameInstance())
+					{
+						UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(GameInstance);
+						if (MainGameInstance)
+						{
+							ScoreText->SetText(FText::FromString(FString::Printf(TEXT("Score: %i"), MainGameInstance->TotalScore)));
+						}
+					}
+				}
+				
+				if (UTextBlock* LevelIndexText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("Level"))))
+				{
+					LevelIndexText->SetText(FText::FromString(FString::Printf(TEXT("Level: %d"), CurrentLevelIndex + 1)));
+				}
+			}
+		}
+	}
 }

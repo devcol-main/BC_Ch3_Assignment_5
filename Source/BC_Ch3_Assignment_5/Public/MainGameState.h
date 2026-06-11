@@ -42,6 +42,8 @@ public:
 	// 매 레벨이 끝나기 전까지 시간이 흐르도록 관리하는 타이머
 	FTimerHandle LevelTimerHandle;
 	
+	FTimerHandle HUDUpdateTimerHandle;
+	
 	
 	// === Func ===
 	// 현재 점수를 읽는 함수
@@ -63,5 +65,6 @@ public:
 	void OnCoinCollected();
 	// 레벨을 강제 종료하고 다음 레벨로 이동
 	void EndLevel();
+	void UpdateHUD();
 	
 };
