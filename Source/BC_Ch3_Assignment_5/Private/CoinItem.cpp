@@ -25,6 +25,7 @@ void ACoinItem::ActivateItem(AActor* Activator)
 			if (AMainGameState* GameState = World->GetGameState<AMainGameState>())
 			{
 				GameState->AddScore(PointValue);
+				GameState->OnCoinCollected();
 			}
 		}
 		
