@@ -16,6 +16,10 @@ public:
 	virtual void BeginPlay() override;
 	
 	// === Variables ===
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Level")
+	int32 ItemToSpawn;
+	
+	
 	// 전역 점수를 저장하는 변수
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Score")
 	int32 Score;
@@ -53,6 +57,9 @@ public:
 	// 점수를 추가해주는 함수
 	UFUNCTION(BlueprintCallable, Category="Score")
 	void AddScore(int32 Amount);
+	
+	UFUNCTION(BlueprintCallable, Category = "Level")
+	void OnGameComplete();
 	
 	UFUNCTION(BlueprintCallable, Category = "Level")
 	void OnGameOver();

@@ -108,8 +108,7 @@ void AMainPlayerController::ShowMainMenu(bool bIsRestart, bool bIsGameComplete )
 		{
 			if (bIsRestart)
 			{
-				ButtonText->SetText(FText::FromString(TEXT("Restart")));
-				
+				ButtonText->SetText(FText::FromString(TEXT("Restart")));			
 				
 			}
 			else

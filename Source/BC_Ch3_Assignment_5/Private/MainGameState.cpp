@@ -12,6 +12,7 @@ AMainGameState::AMainGameState()
 	Score = 0;
 	SpawnedCoinCount = 0;
 	CollectedCoinCount = 0;
+	//ItemToSpawn = 0;
 	LevelDuration = 3.0f; // 한 레벨당 30초
 	CurrentLevelIndex = 0;
 	MaxLevels = 3;
@@ -79,7 +80,8 @@ void AMainGameState::StartLevel()
 	// 현재 맵에 배치된 모든 SpawnVolume을 찾아 아이템 40개를 스폰
 	TArray<AActor*> FoundVolumes;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnVolume::StaticClass(), FoundVolumes);
-	const int32 ItemToSpawn = 40;
+	//const int32 ItemToSpawn = 40;
+	ItemToSpawn = 30;
 
 	for (int32 i = 0; i < ItemToSpawn; i++)
 	{
@@ -155,8 +157,9 @@ void AMainGameState::EndLevel()
 	// TODO: Game Complete 로
 	if (CurrentLevelIndex >= MaxLevels)
 	{
-		// 
-		OnGameOver();
+		//
+		OnGameComplete();
+		//OnGameOver();
 		return;
 	}
 
@@ -169,6 +172,22 @@ void AMainGameState::EndLevel()
 	{
 		// 맵 이름이 없으면 게임오버
 		OnGameOver();
+	}
+}
+
+void AMainGameState::OnGameComplete()
+{
+	GetWorldTimerManager().ClearTimer(HUDUpdateTimerHandle);
+	GetWorldTimerManager().ClearTimer(LevelTimerHandle);
+	//
+	
+	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+	{
+		if (AMainPlayerController* MainPlayerController = Cast<AMainPlayerController>(PlayerController))
+		{
+			MainPlayerController->SetPause(true);
+			MainPlayerController->ShowMainMenu(true, true);
+		}
 	}
 }
 
