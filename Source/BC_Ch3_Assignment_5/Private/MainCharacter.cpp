@@ -10,9 +10,12 @@
 #include "GameFramework/SpringArmComponent.h" 
 
 //
+#include "MainGameState.h"
 #include "GameFramework/CharacterMovementComponent.h" // GetCharacterMovement() 사용을 위해
 #include "GameFramework/Actor.h"
-#include "Kismet/GameplayStatics.h"
+#include "Components/WidgetComponent.h"
+#include "Components/TextBlock.h"
+//#include "Kismet/GameplayStatics.h"
 
 AMainCharacter::AMainCharacter()
 { 	
@@ -37,8 +40,12 @@ AMainCharacter::AMainCharacter()
 	// 카메라는 스프링 암의 회전을 따르므로 PawnControlRotation은 꺼둠
 	CameraComp->bUsePawnControlRotation = false;
 	
-	// Movements & Sprint Speed
+	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
+	OverheadWidget->SetupAttachment(GetMesh());
+	OverheadWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	
+	
+	// Movements & Sprint Speed	
 	NormalSpeed = 600.0f;
 	SprintSpeedMultiplier = 1.75f;
 	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
@@ -54,6 +61,11 @@ AMainCharacter::AMainCharacter()
 	Health = MaxHealth;
 }
 
+void AMainCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	UpdateOverheadHP();
+}
 
 // Called to bind functionality to input
 void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -219,6 +231,7 @@ void AMainCharacter::AddHealth(float  Amount)
 {
 	// 체력을 회복시킴. 최대 체력을 초과하지 않도록 제한함
 	Health = FMath::Clamp(Health + Amount, 0.0f, MaxHealth);
+	UpdateOverheadHP();
 	//UE_LOG(LogTemp, Log, TEXT("Health increased to: %f"), Health);
 	
 	/*
@@ -238,6 +251,7 @@ float  AMainCharacter::TakeDamage(float  DamageAmount, FDamageEvent const& Damag
 
 	// 체력을 데미지만큼 감소시키고, 0 이하로 떨어지지 않도록 Clamp
 	Health = FMath::Clamp(Health - DamageAmount, 0.0f, MaxHealth);
+	UpdateOverheadHP();
 	//UE_LOG(LogTemp, Warning, TEXT("Health decreased to: %f"), Health);
 	/*if (GEngine)
 	{ 
@@ -261,13 +275,30 @@ float  AMainCharacter::TakeDamage(float  DamageAmount, FDamageEvent const& Damag
 void AMainCharacter::OnDeath()
 {
 	//UE_LOG(LogTemp, Error, TEXT("Character is Dead!"));
-	if (GEngine)
+	/*if (GEngine)
 	{ 
 		GEngine->AddOnScreenDebugMessage(
 				-1, 2.f, FColor::Red,
 				 TEXT("Character is Dead!"));
+	}*/
+	
+	AMainGameState* MainGameState = GetWorld() ? GetWorld()->GetGameState<AMainGameState>() : nullptr;
+	if (MainGameState)
+	{
+		MainGameState->OnGameOver();
 	}
+}
 
-	// 사망 후 로직
+void AMainCharacter::UpdateOverheadHP()
+{
+	if (!OverheadWidget) return;
+	
+	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
+	if (!OverheadWidgetInstance) return;
+	
+	if (UTextBlock* HPText = Cast<UTextBlock>(OverheadWidgetInstance->GetWidgetFromName(TEXT("OverHeadHP"))))
+	{
+		HPText->SetText(FText::FromString(FString::Printf(TEXT("%.0f / %.0f"), Health, MaxHealth)));
+	}
 }
 

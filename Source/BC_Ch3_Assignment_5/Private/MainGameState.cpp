@@ -12,7 +12,7 @@ AMainGameState::AMainGameState()
 	Score = 0;
 	SpawnedCoinCount = 0;
 	CollectedCoinCount = 0;
-	LevelDuration = 30.0f; // 한 레벨당 30초
+	LevelDuration = 3.0f; // 한 레벨당 30초
 	CurrentLevelIndex = 0;
 	MaxLevels = 3;
 }
@@ -24,7 +24,7 @@ void AMainGameState::BeginPlay()
 	// 게임 시작 시 첫 레벨부터 진행
 	StartLevel();
 	
-	UpdateHUD();
+	//UpdateHUD();
 	
 	GetWorldTimerManager().SetTimer(
 			HUDUpdateTimerHandle,
@@ -55,6 +55,15 @@ void AMainGameState::AddScore(int32 Amount)
 
 void AMainGameState::StartLevel()
 {
+	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+	{
+		if (AMainPlayerController* MainPlayerController = Cast<AMainPlayerController>(PlayerController))
+		{
+			MainPlayerController->ShowGameHUD();
+		}
+	}
+
+	
 	if (UGameInstance* GameInstance = GetGameInstance())
 	{
 		UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(GameInstance);
@@ -96,9 +105,9 @@ void AMainGameState::StartLevel()
 		LevelDuration,
 		false
 	);
-	UE_LOG(LogTemp, Warning, TEXT("Level %d Start!, Spawned %d coin"),
+	/*UE_LOG(LogTemp, Warning, TEXT("Level %d Start!, Spawned %d coin"),
 	       CurrentLevelIndex + 1,
-	       SpawnedCoinCount);
+	       SpawnedCoinCount);*/
 }
 
 void AMainGameState::OnLevelTimeUp()
@@ -111,9 +120,9 @@ void AMainGameState::OnCoinCollected()
 {
 	CollectedCoinCount++;
 
-	UE_LOG(LogTemp, Warning, TEXT("Coin Collected: %d / %d"),
+	/*UE_LOG(LogTemp, Warning, TEXT("Coin Collected: %d / %d"),
 	       CollectedCoinCount,
-	       SpawnedCoinCount)
+	       SpawnedCoinCount)*/
 
 	// 현재 레벨에서 스폰된 코인을 전부 주웠다면 즉시 레벨 종료
 	if (SpawnedCoinCount > 0 && CollectedCoinCount >= SpawnedCoinCount)
@@ -162,9 +171,18 @@ void AMainGameState::EndLevel()
 
 void AMainGameState::OnGameOver()
 {
-	UpdateHUD();
-	UE_LOG(LogTemp, Warning, TEXT("Game Over!!"));
-	// 여기서 UI를 띄운다거나, 재시작 기능을 넣을 수도 있음
+	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+	{
+		if (AMainPlayerController* MainPlayerController = Cast<AMainPlayerController>(PlayerController))
+		{
+			MainPlayerController->SetPause(true);
+			MainPlayerController->ShowMainMenu(true);
+		}
+	}
+	
+	//UpdateHUD();
+	//UE_LOG(LogTemp, Warning, TEXT("Game Over!!"));
+	
 }
 
 void AMainGameState::UpdateHUD()
