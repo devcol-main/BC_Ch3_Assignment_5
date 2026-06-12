@@ -75,7 +75,7 @@ UUserWidget* AMainPlayerController::GetHUDWidget() const
 
 
 // 메뉴 UI 표시
-void AMainPlayerController::ShowMainMenu(bool bIsRestart)
+void AMainPlayerController::ShowMainMenu(bool bIsRestart, bool bIsGameComplete )
 {
 	// HUD가 켜져 있다면 닫기
 	if (HUDWidgetInstance)
@@ -120,6 +120,20 @@ void AMainPlayerController::ShowMainMenu(bool bIsRestart)
 		
 		if (bIsRestart)
 		{
+			UTextBlock* GameOverText = Cast<UTextBlock>(MainMenuWidgetInstance->GetWidgetFromName("GameOverText"));
+			
+			if (bIsGameComplete)
+			{				
+				if (GameOverText)
+				{
+					GameOverText->SetText(FText::FromString(TEXT("Game Complete")));
+				}
+			}
+			else
+			{				
+				
+			}
+			
 			UFunction* PlayAnimFunc = MainMenuWidgetInstance->FindFunction(FName("PlayGameOverAnim"));
 			if (PlayAnimFunc)
 			{
@@ -135,6 +149,8 @@ void AMainPlayerController::ShowMainMenu(bool bIsRestart)
 					));
 				}
 			}
+			
+			
 		}
 	}
 }

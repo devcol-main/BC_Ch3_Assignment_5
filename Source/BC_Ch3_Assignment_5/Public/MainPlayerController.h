@@ -60,7 +60,7 @@ public:
 
 	// 메인 메뉴 표시
 	UFUNCTION(BlueprintCallable, Category = "Menu")
-	void ShowMainMenu(bool bIsRestart);
+	void ShowMainMenu(bool bIsRestart, bool bIsGameComplete = false);
 	// 게임 시작
 	UFUNCTION(BlueprintCallable, Category = "Menu")
 	void StartGame();

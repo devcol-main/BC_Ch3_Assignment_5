@@ -136,6 +136,7 @@ void AMainGameState::EndLevel()
 	
 	// 타이머 해제
 	GetWorldTimerManager().ClearTimer(LevelTimerHandle);
+	GetWorldTimerManager().ClearTimer(HUDUpdateTimerHandle);
 	// 다음 레벨 인덱스로
 	//CurrentLevelIndex++;
 	
@@ -151,8 +152,10 @@ void AMainGameState::EndLevel()
 	}
 
 	// 모든 레벨을 다 돌았다면 게임 오버 처리
+	// TODO: Game Complete 로
 	if (CurrentLevelIndex >= MaxLevels)
 	{
+		// 
 		OnGameOver();
 		return;
 	}
@@ -171,6 +174,11 @@ void AMainGameState::EndLevel()
 
 void AMainGameState::OnGameOver()
 {
+	//
+	GetWorldTimerManager().ClearTimer(HUDUpdateTimerHandle);
+	GetWorldTimerManager().ClearTimer(LevelTimerHandle);
+	//
+	
 	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 	{
 		if (AMainPlayerController* MainPlayerController = Cast<AMainPlayerController>(PlayerController))
@@ -190,8 +198,10 @@ void AMainGameState::UpdateHUD()
 	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 	{
 		AMainPlayerController* MainPlayerController = Cast<AMainPlayerController>(PlayerController);
+		if (MainPlayerController)
 		{
-			if (UUserWidget* HUDWidget = MainPlayerController->GetHUDWidget())
+			UUserWidget* HUDWidget = MainPlayerController->GetHUDWidget();
+			if (HUDWidget)
 			{
 				// requires
 				// #include "Components/TextBlock.h"
