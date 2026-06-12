@@ -1,10 +1,13 @@
 #include "BaseItem.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystemComponent.h"
+
 
 ABaseItem::ABaseItem()
 {
 	PrimaryActorTick.bCanEverTick = false;
-    
+
 	// 루트 컴포넌트 생성 및 설정
 	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
 	SetRootComponent(Scene);
@@ -16,7 +19,7 @@ ABaseItem::ABaseItem()
 	Collision->SetCollisionProfileName(CollisionProfile_OverlapAllDynamic);
 	// 루트 컴포넌트로 설정
 	Collision->SetupAttachment(Scene);
-    
+
 	// 스태틱 메시 컴포넌트 생성 및 설정
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	StaticMesh->SetupAttachment(Collision);
@@ -28,14 +31,13 @@ ABaseItem::ABaseItem()
 }
 
 void ABaseItem::OnItemOverlap(
-			UPrimitiveComponent* OverlappedComp,
-			AActor* OtherActor, 
-			UPrimitiveComponent* OtherComp, 
-			int32 OtherBodyIndex, 
-			bool bFromSweep, 
-			const FHitResult& SweepResult)
+	UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
 {
-	
 	/*
 	추가 팁: 인터페이스(Interface) 활용하기만약 플레이어뿐만 아니라 '데미지를 입을 수 있는 모든 대상'을 판별하고 싶다면, 
 	Cast 대신 언리얼 인터페이스(UInterface)를 사용해 OtherActor->Implements<UMyDamageInterface>() 형태로 판별하는 것이 아키텍처 관점에서 훨씬 깔끔합니다.
@@ -85,28 +87,77 @@ void ABaseItem::OnItemOverlap(
 	}
 
 	 */
-	
-	
+
+
 	// OtherActor가 플레이어인지 확인 ("Player" 태그 활용)
 	if (OtherActor && OtherActor->ActorHasTag("Player"))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Overlap!!!")));
+		//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Overlap!!!")));
 		// 아이템 사용 (획득) 로직 호출
 		ActivateItem(OtherActor);
 	}
 }
 
 void ABaseItem::OnItemEndOverlap(
-			UPrimitiveComponent* OverlappedComp, 
-			AActor* OtherActor, 
-			UPrimitiveComponent* OtherComp, 
-			int32 OtherBodyIndex)
+	UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex)
 {
 }
 
 void ABaseItem::ActivateItem(AActor* Activator)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Overlap!!")));
+{	
+	
+	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Overlap!!")));
+
+	
+	UParticleSystemComponent* Particle = nullptr;
+	
+	// PickupParticle == BP 에서 지정해둔 에셋
+	if (PickupParticle)
+	{
+		Particle = UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			PickupParticle,
+			GetActorLocation(),
+			GetActorRotation(),
+			true
+		);
+	}
+
+	if (PickupSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			GetWorld(),
+			PickupSound,
+			GetActorLocation()
+		);
+
+	}
+	
+	if (Particle)
+	{
+		/*if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("ActivateItem from Base Item")));*/
+		
+		FTimerHandle DestroyParticleTimerHandle;
+		TWeakObjectPtr<UParticleSystemComponent> WeakParticle = Particle;
+
+		GetWorld()->GetTimerManager().SetTimer(
+			DestroyParticleTimerHandle,
+			[WeakParticle]()
+			{
+				 if (WeakParticle.IsValid())
+				 {
+					 WeakParticle->DestroyComponent();
+							
+				 }
+			 },
+			 2.0f,
+			 false
+		 );
+	}
 }
 
 FName ABaseItem::GetItemType() const
@@ -117,4 +168,22 @@ FName ABaseItem::GetItemType() const
 void ABaseItem::DestroyItem()
 {
 	Destroy();
+	
+	/*if (PickupParticle)
+	{
+		FTimerHandle DestroyParticleTimerHandle;
+		
+		GetWorld()->GetTimerManager().SetTimer(
+			DestroyParticleTimerHandle,
+			// lamda: 익명 함수 (이름이 없는 함수)
+			// [ ] 일종의 캡쳐리스트 람다 싱행시 [ ] 안에 있는 (현재는 Particle) 변수를 바깥 스코프에서 값을 가져다가 
+			// 사용할 수 있게 만드는 것.
+			[Particle]()
+			{
+				Particle->DestroyComponent();
+			},
+			1.0f, // destroy time in sec
+			false
+		);
+	}*/
 }

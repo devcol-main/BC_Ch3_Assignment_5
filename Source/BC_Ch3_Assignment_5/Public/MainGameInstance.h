@@ -12,6 +12,10 @@ class BC_CH3_ASSIGNMENT_5_API UMainGameInstance : public UGameInstance
 public:
 	UMainGameInstance();
 
+	//
+	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameData")
+	//float Health;
+	
 	// 게임 전체 누적 점수
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameData")
 	int32 TotalScore;

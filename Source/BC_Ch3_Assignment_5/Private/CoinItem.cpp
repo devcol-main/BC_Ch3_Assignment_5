@@ -12,12 +12,14 @@ ACoinItem::ACoinItem()
 
 void ACoinItem::ActivateItem(AActor* Activator)
 {
+	Super::ActivateItem(Activator);
+	
 	// 플레이어 태그 확인
 	if (Activator && Activator->ActorHasTag("Player"))
 	{
-		// 점수 획득 디버그 메시지
+		/*// 점수 획득 디버그 메시지
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, 
-			FString::Printf(TEXT("Player Gained %i Points!"), PointValue));
+			FString::Printf(TEXT("Player Gained %i Points!"), PointValue));*/
         	
 		
 		if (UWorld* World = GetWorld())
