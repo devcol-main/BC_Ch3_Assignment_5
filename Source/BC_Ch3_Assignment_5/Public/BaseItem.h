@@ -18,6 +18,9 @@ public:
 	ABaseItem();
 
 protected:
+	
+	bool bIsActivated = false;
+	
 	// 아이템 유형(타입)을 편집 가능하게 지정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	FName ItemType;

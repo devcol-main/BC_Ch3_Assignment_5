@@ -88,6 +88,11 @@ void ABaseItem::OnItemOverlap(
 
 	 */
 
+	// Safety Check
+	if (bIsActivated)
+	{
+		return;
+	}
 
 	// OtherActor가 플레이어인지 확인 ("Player" 태그 활용)
 	if (OtherActor && OtherActor->ActorHasTag("Player"))
@@ -111,6 +116,11 @@ void ABaseItem::ActivateItem(AActor* Activator)
 	
 	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Overlap!!")));
 
+	// !! Safty 추가
+	if (!GetWorld())
+	{
+		return;
+	}
 	
 	UParticleSystemComponent* Particle = nullptr;
 	
@@ -136,7 +146,7 @@ void ABaseItem::ActivateItem(AActor* Activator)
 
 	}
 	
-	if (Particle)
+	if (Particle && GetWorld())
 	{
 		/*if (GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("ActivateItem from Base Item")));*/
