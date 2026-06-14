@@ -16,6 +16,12 @@ AMainGameState::AMainGameState()
 	LevelDuration = 3.0f; // 한 레벨당 30초
 	CurrentLevelIndex = 0;
 	MaxLevels = 3;
+	
+	//
+	WaveDuration = 3.0f;
+	CurrentWaveIndex = 0;
+	MaxWave = 3;
+	
 }
 
 void AMainGameState::BeginPlay()
@@ -107,6 +113,8 @@ void AMainGameState::StartLevel()
 		LevelDuration,
 		false
 	);
+	
+	
 	/*UE_LOG(LogTemp, Warning, TEXT("Level %d Start!, Spawned %d coin"),
 	       CurrentLevelIndex + 1,
 	       SpawnedCoinCount);*/

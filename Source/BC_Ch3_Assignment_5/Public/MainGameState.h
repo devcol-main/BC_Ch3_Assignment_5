@@ -16,9 +16,20 @@ public:
 	virtual void BeginPlay() override;
 	
 	// === Variables ===
+	//
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave")
+	float WaveDuration;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave")
+	int32 CurrentWaveIndex;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wave")
+	int32 MaxWave;
+		
+	//
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Level")
 	int32 ItemToSpawn;
-	
 	
 	// 전역 점수를 저장하는 변수
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Score")
@@ -47,6 +58,8 @@ public:
 	FTimerHandle LevelTimerHandle;
 	
 	FTimerHandle HUDUpdateTimerHandle;
+	
+	FTimerHandle WaveTimerHandle;
 	
 	
 	// === Func ===
