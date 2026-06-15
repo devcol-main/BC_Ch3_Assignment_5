@@ -15,13 +15,13 @@ void ADebuffItem::ActivateItem(AActor* Activator)
 	if (Activator && Activator->ActorHasTag("Player"))
 	{
 		//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green,FString::Printf(TEXT("Player Gained %i HP!"), HealAmount));
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow,
+		/*GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow,
 		                                 FString::Printf(TEXT("Activate DebuffItem")));
 
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow,
 		FString::Printf(
 		TEXT("DebuffName: %s"),
-		*UEnum::GetValueAsString(DebuffData.DebuffType)));
+		*UEnum::GetValueAsString(DebuffData.DebuffType)));*/
 
 		if (AMainCharacter* PlayerCharacter = Cast<AMainCharacter>(Activator))
 		{

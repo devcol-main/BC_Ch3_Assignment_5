@@ -63,17 +63,19 @@ void AMainGameState::StartWave()
 	// ====
 	++CurrentWaveIndex;
 
+	/*
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green,
 	                                 FString::Printf(TEXT("Wave %i Start!"), CurrentWaveIndex));
+	                                 */
 	
 	FName CurrentMapName = LevelMapNames[CurrentLevelIndex];
 
-	GEngine->AddOnScreenDebugMessage(
+	/*GEngine->AddOnScreenDebugMessage(
 		-1,
 		2.0f,
 		FColor::Yellow,
 		FString::Printf(TEXT("Current Map: %s"), *CurrentMapName.ToString())
-	);
+	);*/
 
 	//WaveDuration = 10.0f;
 	
