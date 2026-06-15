@@ -26,6 +26,9 @@ public:
 	
 	FFixedItemSpawnRow* GetFixedItem() const;
 	
+	void SpawnFixedItemsForWave(int32 WaveIndex);
+	FFixedItemSpawnRow* GetFixedItemByWave(int32 WaveIndex) const;
+	
 protected:
 	//
 	

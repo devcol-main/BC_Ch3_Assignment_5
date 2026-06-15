@@ -76,6 +76,57 @@ void AMainGameState::StartWave()
 	);
 
 	//WaveDuration = 10.0f;
+	
+	//SpawnVolume->SpawnFixedItemsForWave(CurrentWaveIndex);
+	
+	// =====
+	
+	TArray<AActor*> FoundVolumes;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnVolume::StaticClass(), FoundVolumes);
+	
+	if (FoundVolumes.Num() > 0)
+	{
+		ASpawnVolume* SpawnVolume = Cast<ASpawnVolume>(FoundVolumes[0]);
+		if (SpawnVolume)
+		{
+			SpawnVolume->SpawnFixedItemsForWave(CurrentWaveIndex);
+
+		}
+	}
+	
+	/*
+	for (TActorIterator<ASpawnVolume> It(GetWorld()); It; ++It)
+{
+	ASpawnVolume* SpawnVolume = *It;
+
+	if (SpawnVolume)
+	{
+		SpawnVolume->SpawnFixedItemsForWave(CurrentWaveIndex);
+		break;
+	}
+}
+	 */
+	
+/*
+	for (int32 i = 0; i < ItemToSpawn; i++)
+	{
+		if (FoundVolumes.Num() > 0)
+		{
+			ASpawnVolume* SpawnVolume = Cast<ASpawnVolume>(FoundVolumes[0]);
+			if (SpawnVolume)
+			{
+				AActor* SpawnedActor = SpawnVolume->SpawnRandomItem();
+				// 만약 스폰된 액터가 코인 타입이라면 SpawnedCoinCount 증가
+				if (SpawnedActor && SpawnedActor->IsA(ACoinItem::StaticClass()))
+				{
+					SpawnedCoinCount++;
+				}
+			}
+		}
+	}
+*/
+	
+	// =====
 
 	switch (CurrentWaveIndex)
 	{
@@ -87,7 +138,8 @@ void AMainGameState::StartWave()
 				2.0f,
 				FColor::Yellow,
 				FString::Printf(TEXT("WaveTimeAdded : %f"), WaveDuration)
-			);			
+			);					
+			
 		}
 
 		break;
@@ -117,6 +169,8 @@ void AMainGameState::StartWave()
 		}
 
 	}
+	
+	
 
 	if (CurrentMapName == "BasicLevel")
 	{
@@ -170,6 +224,10 @@ void AMainGameState::StartLevel()
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnVolume::StaticClass(), FoundVolumes);
 	//const int32 ItemToSpawn = 40;
 	//ItemToSpawn = 30;
+	
+	
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue,
+								 FString::Printf(TEXT("Total FoundVolumes: %i"), FoundVolumes.Num()));
 
 	for (int32 i = 0; i < ItemToSpawn; i++)
 	{
@@ -189,8 +247,7 @@ void AMainGameState::StartLevel()
 	}
 
 
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue,
-	                                 FString::Printf(TEXT("Total SpawnedCoinCount: %i"), SpawnedCoinCount));
+
 
 
 	/*
@@ -227,9 +284,11 @@ void AMainGameState::OnCoinCollected()
 	       CollectedCoinCount,
 	       SpawnedCoinCount)*/
 	
+	/*
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, 
 		FColor::Blue,
 		FString::Printf(TEXT("Coin Collected: %d | %d"), CollectedCoinCount, SpawnedCoinCount));
+		*/
 	
 	// start wave2, wave3, 
 
@@ -279,7 +338,7 @@ void AMainGameState::EndLevel()
 
 	if (SpawnedCoinCount > 0 && CollectedCoinCount < SpawnedCoinCount)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,TEXT("GG"));
+		//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,TEXT("GG"));
 		OnGameOver();
 
 		return;
@@ -420,8 +479,9 @@ void AMainGameState::UpdateTimer(FTimerHandle& TimerHandle, float DeltaTime)
 {
 	if (GetWorldTimerManager().IsTimerActive(TimerHandle))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green,
+		/*GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green,
 		                                 FString::Printf(TEXT("IsTimerActive")));
+		                                 */
 
 		float UpdatedTime = GetWorldTimerManager().GetTimerRemaining(TimerHandle);
 		UpdatedTime += DeltaTime;
@@ -437,8 +497,9 @@ void AMainGameState::UpdateTimer(FTimerHandle& TimerHandle, float DeltaTime)
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,
+		/*GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,
 		                                 FString::Printf(TEXT("NO Timer")));
+		                                 */
 
 		GetWorldTimerManager().SetTimer(
 			TimerHandle,

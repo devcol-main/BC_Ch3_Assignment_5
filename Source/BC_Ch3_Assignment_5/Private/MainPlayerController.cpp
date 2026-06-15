@@ -1,11 +1,13 @@
 #include "MainPlayerController.h"
-#include "EnhancedInputSubsystems.h"
 #include "EnhancedInputSubsystems.h" // Enhanced Input System의 Local Player Subsystem을 사용하기 위해 포함
 #include "MainGameState.h"
 #include "MainGameInstance.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h" // QuitGame 
 #include "Components/TextBlock.h"
+
 
 // 어차피 블루프린트 상에서 전부 다 초기화를 하기 때문에 여기서는 전부 다 nullptr 처리
 AMainPlayerController::AMainPlayerController()
@@ -75,7 +77,7 @@ UUserWidget* AMainPlayerController::GetHUDWidget() const
 
 
 // 메뉴 UI 표시
-void AMainPlayerController::ShowMainMenu(bool bIsRestart, bool bIsGameComplete )
+void AMainPlayerController::ShowMainMenu(bool bIsRestart, bool bIsGameComplete)
 {
 	// HUD가 켜져 있다면 닫기
 	if (HUDWidgetInstance)
@@ -101,56 +103,78 @@ void AMainPlayerController::ShowMainMenu(bool bIsRestart, bool bIsGameComplete )
 
 			bShowMouseCursor = true;
 			SetInputMode(FInputModeUIOnly());
-		}
-
-		if (UTextBlock* ButtonText = Cast<UTextBlock>(
-			MainMenuWidgetInstance->GetWidgetFromName(TEXT("StartButtonText"))))
-		{
+			
+			UButton* MenuButton = Cast<UButton>(MainMenuWidgetInstance->GetWidgetFromName(TEXT("MenuButton")));
+			
+			if (GetWorld()->GetMapName().Contains("MenuLevel"))
+			{
+				//UButton* MenuButton = Cast<UButton>(MainMenuWidgetInstance->GetWidgetFromName(TEXT("MenuButton")));
+			
+				if (MenuButton)
+					MenuButton->SetVisibility(ESlateVisibility::Collapsed);	
+			}
+			else
+			{
+				//UButton* MenuButton = Cast<UButton>(MainMenuWidgetInstance->GetWidgetFromName(TEXT("MenuButton")));
+			
+				if (MenuButton)
+					MenuButton->SetVisibility(ESlateVisibility::Visible);
+			}
+			
+			
+			//
+			if (UTextBlock* ButtonText = Cast<UTextBlock>(
+				MainMenuWidgetInstance->GetWidgetFromName(TEXT("StartButtonText"))))
+			{
+				if (bIsRestart)
+				{
+					ButtonText->SetText(FText::FromString(TEXT("Restart")));
+				}
+				else
+				{
+					ButtonText->SetText(FText::FromString(TEXT("Start")));
+				}
+			}
+			
+			//
+			
 			if (bIsRestart)
 			{
-				ButtonText->SetText(FText::FromString(TEXT("Restart")));			
-				
-			}
-			else
-			{
-				ButtonText->SetText(FText::FromString(TEXT("Start")));
-			}
-		}
-		
-		if (bIsRestart)
-		{
-			UTextBlock* GameOverText = Cast<UTextBlock>(MainMenuWidgetInstance->GetWidgetFromName("GameOverText"));
-			
-			if (bIsGameComplete)
-			{				
-				if (GameOverText)
-				{
-					GameOverText->SetText(FText::FromString(TEXT("Game Complete")));
-				}
-			}
-			else
-			{				
-				
-			}
-			
-			UFunction* PlayAnimFunc = MainMenuWidgetInstance->FindFunction(FName("PlayGameOverAnim"));
-			if (PlayAnimFunc)
-			{
-				MainMenuWidgetInstance->ProcessEvent(PlayAnimFunc, nullptr);
-			}
+				UTextBlock* GameOverText = Cast<UTextBlock>(MainMenuWidgetInstance->GetWidgetFromName(TEXT("GameOverText")));
 
-			if (UTextBlock* TotalScoreText = Cast<UTextBlock>(MainMenuWidgetInstance->GetWidgetFromName("TotalScoreText")))
-			{
-				if (UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(this)))
+				if (bIsGameComplete)
 				{
-					TotalScoreText->SetText(FText::FromString(
-						FString::Printf(TEXT("Total Score: %i"), MainGameInstance->TotalScore)
-					));
+					if (GameOverText)
+					{
+						GameOverText->SetText(FText::FromString(TEXT("Game Complete")));
+					}
+				}
+				else
+				{
+				}
+
+				UFunction* PlayAnimFunc = MainMenuWidgetInstance->FindFunction(FName("PlayGameOverAnim"));
+				if (PlayAnimFunc)
+				{
+					MainMenuWidgetInstance->ProcessEvent(PlayAnimFunc, nullptr);
+				}
+
+				if (UTextBlock* TotalScoreText = Cast<UTextBlock>(
+					MainMenuWidgetInstance->GetWidgetFromName(TEXT("TotalScoreText"))))
+				{
+					if (UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(
+						UGameplayStatics::GetGameInstance(this)))
+					{
+						TotalScoreText->SetText(FText::FromString(
+							FString::Printf(TEXT("Total Score: %i"), MainGameInstance->TotalScore)
+						));
+					}
 				}
 			}
-			
-			
-		}
+	
+		}		
+
+
 	}
 }
 
@@ -201,4 +225,26 @@ void AMainPlayerController::StartGame()
 
 	UGameplayStatics::OpenLevel(GetWorld(), FName("BasicLevel"));
 	SetPause(false);
+}
+
+void AMainPlayerController::MenuLevel()
+{
+	if (UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(this)))
+	{
+		MainGameInstance->CurrentLevelIndex = 0;
+		MainGameInstance->TotalScore = 0;
+	}
+
+	UGameplayStatics::OpenLevel(GetWorld(), FName("MenuLevel"));
+	SetPause(false);
+}
+
+void AMainPlayerController::QuitGame()
+{
+	UKismetSystemLibrary::QuitGame(
+		GetWorld(),
+		nullptr,
+		EQuitPreference::Quit,
+		false
+	);
 }
