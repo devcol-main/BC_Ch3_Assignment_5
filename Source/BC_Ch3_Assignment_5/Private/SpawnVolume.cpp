@@ -109,8 +109,8 @@ FFixedItemSpawnRow* ASpawnVolume::GetFixedItemByWave(int32 WaveIndex) const
 		
 		if (Row->WaveIndex == WaveIndex)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, 
-		FString::Printf(TEXT("Row->WaveIndex == WaveIndex: %d"), WaveIndex));
+			/*GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, 
+		FString::Printf(TEXT("Row->WaveIndex == WaveIndex: %d"), WaveIndex));*/
 			return Row;
 		}
 
