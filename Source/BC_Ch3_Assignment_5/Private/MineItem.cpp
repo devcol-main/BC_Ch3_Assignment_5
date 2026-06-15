@@ -112,7 +112,8 @@ void AMineItem::ActivateItem(AActor* Activator)
 	SetActorTickEnabled(true);// 
 
 	// ExplosionDelay 후 폭발 실행
-	GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &AMineItem::Explode, ExplosionDelay);
+	GetWorld()->GetTimerManager().SetTimer(
+		ExplosionTimerHandle, this, &AMineItem::Explode, ExplosionDelay);
 	
 	bHasExploded = true;
 	

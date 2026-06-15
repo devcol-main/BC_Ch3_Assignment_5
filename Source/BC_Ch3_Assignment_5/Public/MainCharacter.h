@@ -10,6 +10,7 @@ class USpringArmComponent; // 스프링 암 관련 클래스 헤더
 class UCameraComponent; // 카메라 관련 클래스 전방 선언
 class UWidgetComponent;
 
+
 // Enhanced Input에서 액션 값을 받을 때 사용하는 구조체
 struct FInputActionValue;
 
@@ -21,58 +22,87 @@ class BC_CH3_ASSIGNMENT_5_API AMainCharacter : public ACharacter
 public:
 	// Sets default values for this character's properties
 	AMainCharacter();
-	
+
 	virtual void BeginPlay() override;
-	
-	
+
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-	USpringArmComponent* SpringArmComp  = nullptr;
+	USpringArmComponent* SpringArmComp = nullptr;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent* CameraComp = nullptr;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	UWidgetComponent* OverheadWidget = nullptr;
-	
+
 	// 현재 체력을 가져오는 함수
 	UFUNCTION(BlueprintPure, Category = "Health")
 	float GetHealth() const;
-		
+
 	// 체력을 회복시키는 함수
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void AddHealth(float Amount);
-	
+
+
+	UFUNCTION(BlueprintPure, Category = "Stats")
+	float GetSpeed() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	void SetSpeed(float Amount);
+
+	// 원래는 구조체 자체를 새로 만들어서 하는게 맞지만 우선 이렇게 하고 추후 다시 만들때 그렇게 깔끔하게 하자. 
+	UFUNCTION(BlueprintCallable, Category = "Buff/Debuff")
+	void DebuffSpeed(float Amount, float Duration);
+
+	UFUNCTION(BlueprintCallable, Category = "Buff/Debuff")
+	void DebuffReverseControl(float Duration);
+
+	UFUNCTION(BlueprintCallable, Category = "Buff/Debuff")
+	void BuffJump(float Amount, float Duration);
+
+	//
+
 protected:
-	
+	//	
+	FTimerHandle DebuffSpeedTimerHandle;
+	FTimerHandle DebuffReverseTimerHandle;
+	FTimerHandle BuffJumpTimerHandle;
+
+
+	//
 	// === Variables ===
+
+
 	// 최대 체력
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
-	float  MaxHealth;
+	float MaxHealth;
 	// 현재 체력
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Health")
-	float  Health;
-	
+	float Health;
+
 	// = Movements
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float NormalSpeed; // 기본 걷기 속도
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float SprintSpeedMultiplier;  // "기본 속도" 대비 몇 배로 빠르게 달릴지
-	
+	float SprintSpeedMultiplier; // "기본 속도" 대비 몇 배로 빠르게 달릴지
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-	float SprintSpeed; 	// 실제 스프린트 속도 SprintSpeed= NormalSpeed * SprintSpeedMultiplier
-	
-	
+	float SprintSpeed; // 실제 스프린트 속도 SprintSpeed= NormalSpeed * SprintSpeedMultiplier
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	bool bReverseControl = false;
+
 	// =====	
-	
+
 	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;	
-	
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
 	UFUNCTION()
 	void Move(const FInputActionValue& value);
-	
+
 	UFUNCTION()
 	void Look(const FInputActionValue& value);
-	
+
 	// on off 의 형태의 것들은 그냥 나눠 주는 것이 좋다
 	// 왜냐하면 이전에는 세세하게 처리하기가 상당이 까다로웠는데
 	// EnhancedInputSystem은 그것들을 매우 편하게 변경해주었기 때문에 왠만하면 나눠 주는 것이 좋다
@@ -80,17 +110,17 @@ protected:
 	void StartJump(const FInputActionValue& value);
 	UFUNCTION()
 	void StopJump(const FInputActionValue& value);
-	
+
 	UFUNCTION()
 	void StartSprint(const FInputActionValue& value);
 	UFUNCTION()
 	void StopSprint(const FInputActionValue& value);
-	
-	
+
+
 	// 사망 처리 함수 (체력이 0 이하가 되었을 때 호출)
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	virtual void OnDeath();
-	
+
 	void UpdateOverheadHP();
 
 	// 데미지 처리 함수 - 외부로부터 데미지를 받을 때 호출됨
@@ -100,6 +130,17 @@ protected:
 		struct FDamageEvent const& DamageEvent, // Damage 관련 추가 정보 (예: Skill 속성에 따른 반응) 
 		AController* EventInstigator, //데미지를 발생 시킨 주체
 		AActor* DamageCauser // 데미지를 일으킨 오브젝트
-		) override;
-	
+	) override;
+
+private:
+	float DebuffSpeedDuration = 0.f;
+	float DebuffReverseDuration = 0.f;
+
+	float BuffJumpDuration = 0.f;
+	/*
+	float BuffJumpAmount;
+	float BuffReverseControlDuration;
+	float BuffReverseControlAmount;
+	float SprintSpeedMultiplierPrev;
+	*/
 };

@@ -3,3 +3,7 @@
 
 #include "UseItem.h"
 
+AUseItem::AUseItem()
+{
+	
+}
