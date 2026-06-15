@@ -12,16 +12,15 @@ AMainGameState::AMainGameState()
 	Score = 0;
 	SpawnedCoinCount = 0;
 	CollectedCoinCount = 0;
-	//ItemToSpawn = 0;
-	LevelDuration = 3.0f; // 한 레벨당 30초
+	ItemToSpawn = 0;
+	LevelDuration = 0.0f; // 한 레벨당 30초
 	CurrentLevelIndex = 0;
 	MaxLevels = 3;
-	
+
 	//
-	WaveDuration = 3.0f;
+	WaveDuration = 0.0f;
 	CurrentWaveIndex = 0;
 	MaxWave = 3;
-	
 }
 
 void AMainGameState::BeginPlay()
@@ -30,16 +29,16 @@ void AMainGameState::BeginPlay()
 
 	// 게임 시작 시 첫 레벨부터 진행
 	StartLevel();
-	
+
 	//UpdateHUD();
-	
+
 	GetWorldTimerManager().SetTimer(
-			HUDUpdateTimerHandle,
-			this,
-			&AMainGameState::UpdateHUD,
-			0.1f,
-			true
-		);
+		HUDUpdateTimerHandle,
+		this,
+		&AMainGameState::UpdateHUD,
+		0.1f,
+		true
+	);
 }
 
 int32 AMainGameState::GetScore() const
@@ -59,6 +58,90 @@ void AMainGameState::AddScore(int32 Amount)
 	}
 }
 
+void AMainGameState::StartWave()
+{
+	// ====
+	++CurrentWaveIndex;
+
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green,
+	                                 FString::Printf(TEXT("Wave %i Start!"), CurrentWaveIndex));
+	
+	FName CurrentMapName = LevelMapNames[CurrentLevelIndex];
+
+	GEngine->AddOnScreenDebugMessage(
+		-1,
+		2.0f,
+		FColor::Yellow,
+		FString::Printf(TEXT("Current Map: %s"), *CurrentMapName.ToString())
+	);
+
+	//WaveDuration = 10.0f;
+
+	switch (CurrentWaveIndex)
+	{
+	case 1:
+		{
+			WaveDuration += 30.0f;
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				2.0f,
+				FColor::Yellow,
+				FString::Printf(TEXT("WaveTimeAdded : %f"), WaveDuration)
+			);			
+		}
+
+		break;
+	case 2:
+		{
+			WaveDuration += 20.0f;
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				2.0f,
+				FColor::Yellow,
+				FString::Printf(TEXT("WaveTimeAdded : %f"), WaveDuration)
+			);			
+			
+			
+		}
+
+		break;
+	case 3:
+		{
+			WaveDuration += 15.0f;
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				2.0f,
+				FColor::Yellow,
+				FString::Printf(TEXT("WaveTimeAdded : %f"), WaveDuration)
+			);			
+		}
+
+	}
+
+	if (CurrentMapName == "BasicLevel")
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
+		                                 FString::Printf(TEXT("BasicLevel!")));
+	}
+
+	if (CurrentMapName == "AdvancedLevel")
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
+		                                 FString::Printf(TEXT("AdvancedLevel!")));
+	}
+
+
+	if (CurrentMapName == "IntermediateLevel")
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
+		                                 FString::Printf(TEXT("IntermediateLevel!")));
+	}
+
+
+	// update timer
+	UpdateTimer(LevelTimerHandle, WaveDuration);
+}
+
 
 void AMainGameState::StartLevel()
 {
@@ -70,7 +153,6 @@ void AMainGameState::StartLevel()
 		}
 	}
 
-	
 	if (UGameInstance* GameInstance = GetGameInstance())
 	{
 		UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(GameInstance);
@@ -87,7 +169,7 @@ void AMainGameState::StartLevel()
 	TArray<AActor*> FoundVolumes;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnVolume::StaticClass(), FoundVolumes);
 	//const int32 ItemToSpawn = 40;
-	ItemToSpawn = 30;
+	//ItemToSpawn = 30;
 
 	for (int32 i = 0; i < ItemToSpawn; i++)
 	{
@@ -105,6 +187,13 @@ void AMainGameState::StartLevel()
 			}
 		}
 	}
+
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue,
+	                                 FString::Printf(TEXT("Total SpawnedCoinCount: %i"), SpawnedCoinCount));
+
+
+	/*
 	// 30초 후에 OnLevelTimeUp()가 호출되도록 타이머 설정
 	GetWorldTimerManager().SetTimer(
 		LevelTimerHandle,
@@ -112,12 +201,16 @@ void AMainGameState::StartLevel()
 		&AMainGameState::OnLevelTimeUp,
 		LevelDuration,
 		false
-	);
-	
-	
+	);	
+	*/
+
+
 	/*UE_LOG(LogTemp, Warning, TEXT("Level %d Start!, Spawned %d coin"),
 	       CurrentLevelIndex + 1,
 	       SpawnedCoinCount);*/
+
+
+	StartWave();
 }
 
 void AMainGameState::OnLevelTimeUp()
@@ -133,23 +226,65 @@ void AMainGameState::OnCoinCollected()
 	/*UE_LOG(LogTemp, Warning, TEXT("Coin Collected: %d / %d"),
 	       CollectedCoinCount,
 	       SpawnedCoinCount)*/
+	
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, 
+		FColor::Blue,
+		FString::Printf(TEXT("Coin Collected: %d | %d"), CollectedCoinCount, SpawnedCoinCount));
+	
+	// start wave2, wave3, 
 
 	// 현재 레벨에서 스폰된 코인을 전부 주웠다면 즉시 레벨 종료
+	if (SpawnedCoinCount > 0 )
+	{
+		// leveup
+		if (CollectedCoinCount >= SpawnedCoinCount)
+		{
+			EndLevel();
+		}
+		
+		if (CurrentWaveIndex == 1)
+		{
+			if (CollectedCoinCount >= SpawnedCoinCount * 0.25f)
+			{
+				StartWave();
+			}
+		}
+		else if (CurrentWaveIndex == 2)
+		{
+			if (CollectedCoinCount >= SpawnedCoinCount * 0.5f)
+			{
+				StartWave();
+			}
+		}
+
+		
+	}
+	
+	/*
 	if (SpawnedCoinCount > 0 && CollectedCoinCount >= SpawnedCoinCount)
 	{
 		EndLevel();
 	}
+	 */
 }
 
 void AMainGameState::EndLevel()
-{	
-	
+{
 	// 타이머 해제
 	GetWorldTimerManager().ClearTimer(LevelTimerHandle);
 	GetWorldTimerManager().ClearTimer(HUDUpdateTimerHandle);
 	// 다음 레벨 인덱스로
 	//CurrentLevelIndex++;
-	
+
+
+	if (SpawnedCoinCount > 0 && CollectedCoinCount < SpawnedCoinCount)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,TEXT("GG"));
+		OnGameOver();
+
+		return;
+	}
+
 	if (UGameInstance* GameInstance = GetGameInstance())
 	{
 		UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(GameInstance);
@@ -161,7 +296,7 @@ void AMainGameState::EndLevel()
 		}
 	}
 
-	// 모든 레벨을 다 돌았다면 게임 오버 처리
+
 	// TODO: Game Complete 로
 	if (CurrentLevelIndex >= MaxLevels)
 	{
@@ -176,11 +311,13 @@ void AMainGameState::EndLevel()
 	{
 		UGameplayStatics::OpenLevel(GetWorld(), LevelMapNames[CurrentLevelIndex]);
 	}
+	/*
 	else
 	{
 		// 맵 이름이 없으면 게임오버
 		OnGameOver();
 	}
+	*/
 }
 
 void AMainGameState::OnGameComplete()
@@ -188,7 +325,7 @@ void AMainGameState::OnGameComplete()
 	GetWorldTimerManager().ClearTimer(HUDUpdateTimerHandle);
 	GetWorldTimerManager().ClearTimer(LevelTimerHandle);
 	//
-	
+
 	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 	{
 		if (AMainPlayerController* MainPlayerController = Cast<AMainPlayerController>(PlayerController))
@@ -205,7 +342,7 @@ void AMainGameState::OnGameOver()
 	GetWorldTimerManager().ClearTimer(HUDUpdateTimerHandle);
 	GetWorldTimerManager().ClearTimer(LevelTimerHandle);
 	//
-	
+
 	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 	{
 		if (AMainPlayerController* MainPlayerController = Cast<AMainPlayerController>(PlayerController))
@@ -214,10 +351,9 @@ void AMainGameState::OnGameOver()
 			MainPlayerController->ShowMainMenu(true);
 		}
 	}
-	
+
 	//UpdateHUD();
 	//UE_LOG(LogTemp, Warning, TEXT("Game Over!!"));
-	
 }
 
 void AMainGameState::UpdateHUD()
@@ -233,7 +369,7 @@ void AMainGameState::UpdateHUD()
 				// requires
 				// #include "Components/TextBlock.h"
 				// #include "Blueprint/UserWidget.h"
-				
+
 				//추후 변경 방안 
 				// UPROPERTY(meta = (BindWidget))
 				// class UButton* MyAwesomeButton;
@@ -242,7 +378,7 @@ void AMainGameState::UpdateHUD()
 					float RemainingTime = GetWorldTimerManager().GetTimerRemaining(LevelTimerHandle);
 					TimeText->SetText(FText::FromString(FString::Printf(TEXT("Time: %.1f"), RemainingTime)));
 				}
-				
+
 				//
 				if (UTextBlock* ScoreText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("Score"))))
 				{
@@ -251,16 +387,66 @@ void AMainGameState::UpdateHUD()
 						UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(GameInstance);
 						if (MainGameInstance)
 						{
-							ScoreText->SetText(FText::FromString(FString::Printf(TEXT("Score: %i"), MainGameInstance->TotalScore)));
+							ScoreText->SetText(
+								FText::FromString(FString::Printf(TEXT("Score: %i"), MainGameInstance->TotalScore)));
 						}
 					}
 				}
-				
+
 				if (UTextBlock* LevelIndexText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("Level"))))
 				{
-					LevelIndexText->SetText(FText::FromString(FString::Printf(TEXT("Level: %d"), CurrentLevelIndex + 1)));
+					LevelIndexText->SetText(
+						FText::FromString(FString::Printf(TEXT("Level: %d"), CurrentLevelIndex + 1)));
+				}
+				
+				//
+				if (UTextBlock* LevelIndexText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("Wave"))))
+				{
+					LevelIndexText->SetText(
+						FText::FromString(FString::Printf(TEXT("Wave: %d"), CurrentWaveIndex)));
+				}
+				
+				if (UTextBlock* LevelIndexText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("Coin"))))
+				{
+					LevelIndexText->SetText(
+						FText::FromString(FString::Printf(TEXT("Coin: %i / %i"), CollectedCoinCount, SpawnedCoinCount)));
 				}
 			}
 		}
+	}
+}
+
+void AMainGameState::UpdateTimer(FTimerHandle& TimerHandle, float DeltaTime)
+{
+	if (GetWorldTimerManager().IsTimerActive(TimerHandle))
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green,
+		                                 FString::Printf(TEXT("IsTimerActive")));
+
+		float UpdatedTime = GetWorldTimerManager().GetTimerRemaining(TimerHandle);
+		UpdatedTime += DeltaTime;
+
+		GetWorldTimerManager().SetTimer(
+			TimerHandle,
+			this,
+			&AMainGameState::OnLevelTimeUp,
+			UpdatedTime,
+			false
+
+		);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,
+		                                 FString::Printf(TEXT("NO Timer")));
+
+		GetWorldTimerManager().SetTimer(
+			TimerHandle,
+			this,
+			&AMainGameState::OnLevelTimeUp,
+			DeltaTime,
+			false
+
+		);
 	}
 }

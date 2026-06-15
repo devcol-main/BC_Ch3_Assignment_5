@@ -15,6 +15,20 @@ ASpawnVolume::ASpawnVolume()
 	SpawningBox->SetupAttachment(Scene);
 }
 
+
+
+AActor* ASpawnVolume::SpawnFixedItem()
+{
+	if (FFixedItemSpawnRow* SelectedRow = GetFixedItem())
+	{
+		if (UClass* ActualClass = SelectedRow->ItemClass.Get())
+		{
+			return SpawnItem(ActualClass);
+		}
+	}
+	return nullptr;
+}
+
 AActor* ASpawnVolume::SpawnRandomItem()
 {
 	if (FItemSpawnRow* SelectedRow = GetRandomItem())
@@ -42,6 +56,30 @@ FVector ASpawnVolume::GetRandomPointInVolume() const
 	);
 }
 
+FFixedItemSpawnRow* ASpawnVolume::GetFixedItem() const
+{
+	if (!FixedItemDataTable) 
+		return nullptr;
+	
+	TArray<FFixedItemSpawnRow*> AllRows;
+	static const FString ContextString(TEXT("FixedItemSpawnContext"));
+	FixedItemDataTable->GetAllRows(ContextString, AllRows);
+	
+	if (AllRows.IsEmpty()) 
+		return nullptr; 
+	
+	// 추후 check wave
+	for (FFixedItemSpawnRow* Row : AllRows)
+	{
+		if (Row)
+		{
+			return Row;
+		}
+	}	
+	
+	return nullptr;
+	
+}
 
 FItemSpawnRow* ASpawnVolume::GetRandomItem() const
 {
@@ -59,7 +97,7 @@ FItemSpawnRow* ASpawnVolume::GetRandomItem() const
 	// 2) 전체 확률 합 구하기
 	float TotalChance = 0.0f; // 초기화
 	for (const FItemSpawnRow* Row : AllRows) // AllRows 배열의 각 Row를 순회
-	{
+	{		
 		if (Row) // Row가 유효한지 확인
 		{
 			TotalChance += Row->SpawnChance; // SpawnChance 값을 TotalChance에 더하기
