@@ -11,10 +11,12 @@
 
 //
 #include "MainGameState.h"
+#include "Components/ProgressBar.h"
 #include "GameFramework/CharacterMovementComponent.h" // GetCharacterMovement() 사용을 위해
 #include "GameFramework/Actor.h"
 #include "Components/WidgetComponent.h"
 #include "Components/TextBlock.h"
+#include "Components/ProgressBar.h"
 //#include "Kismet/GameplayStatics.h"
 
 AMainCharacter::AMainCharacter()
@@ -299,6 +301,19 @@ void AMainCharacter::UpdateOverheadHP()
 	if (UTextBlock* HPText = Cast<UTextBlock>(OverheadWidgetInstance->GetWidgetFromName(TEXT("OverHeadHP"))))
 	{
 		HPText->SetText(FText::FromString(FString::Printf(TEXT("%.0f / %.0f"), Health, MaxHealth)));
+	}
+	
+	if (UProgressBar* HPProgressBar = Cast<UProgressBar>(OverheadWidgetInstance->GetWidgetFromName(TEXT("HPProgressBar"))) )
+	{
+		if (GEngine)
+		{ 
+			GEngine->AddOnScreenDebugMessage(
+					-1, 2.f, FColor::Blue, 
+					TEXT("HPProgressBar"));
+		}
+
+		HPProgressBar->SetPercent(Health / MaxHealth);
+		
 	}
 }
 

@@ -1,13 +1,18 @@
 #include "MineItem.h"
 #include "Components/SphereComponent.h"
+#include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/WidgetComponent.h"
+#include "Components/ProgressBar.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerController.h"
 #include "Particles/ParticleSystemComponent.h"
 
 AMineItem::AMineItem()
 {
-	ExplosionDelay = 5.0f;
-	ExplosionRadius = 300.0f;
-	ExplosionDamage = 30.0f;
+	ExplosionDelay = .0f;
+	ExplosionRadius = 0.f;
+	ExplosionDamage = .0f;
 	ItemType = "Mine";
 	bHasExploded = false;
 
@@ -16,23 +21,119 @@ AMineItem::AMineItem()
 	//ExplosionCollision->SetCollisionProfileName(TEXT("OverlapAllDynamic")); 
 	ExplosionCollision->SetCollisionProfileName(CollisionProfile_OverlapAllDynamic);
 	ExplosionCollision->SetupAttachment(Scene);
+	//
+	
+	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
+	OverheadWidget->SetupAttachment(Scene);
+	OverheadWidget->SetWidgetSpace(EWidgetSpace::World);
+	
+	OverheadWidget->SetVisibility(false); 
+	
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 }
+
+void AMineItem::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (!OverheadWidget)
+		return;
+	
+	UpdateOverHeadWidget();
+	
+	
+}
+
+void AMineItem::UpdateOverHeadWidget()
+{
+	
+	UpdateOverheadWidgetRotation();
+	
+	
+	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
+	if (!OverheadWidgetInstance) 
+		return;
+	
+	float RemainingTime = GetWorld()->GetTimerManager().GetTimerRemaining(ExplosionTimerHandle);
+	
+	if (UTextBlock* TimerText = Cast<UTextBlock>(OverheadWidgetInstance->GetWidgetFromName(TEXT("TimerText"))))
+	{	
+		TimerText->SetText(FText::FromString(FString::Printf(TEXT(" %.2f / %.2f"), RemainingTime, ExplosionDelay)));
+	}
+	
+	if (UProgressBar* TimerProgressBar = Cast<UProgressBar>(OverheadWidgetInstance->GetWidgetFromName(TEXT("TimerProgressBar"))))
+	{
+		TimerProgressBar->SetPercent(RemainingTime/ExplosionDelay);
+	}
+	
+}
+
+void AMineItem::UpdateOverheadWidgetRotation()
+{
+	// 1. OverheadWidget 유효성 확인 (변수명이 OverheadWidget이고 컴포넌트인 경우)
+	
+
+	// World 유효성 확인
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	// PlayerController 가져오기
+	APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0);
+	if (!PC) return;
+
+	// PlayerCameraManager 가져오기
+	APlayerCameraManager* CameraManager = PC->PlayerCameraManager;
+	if (!CameraManager) return;
+
+	// 카메라 위치 변수 선언 및 가져오기
+	FVector CameraLocation = CameraManager->GetCameraLocation();
+
+	// 위젯 위치 변수 선언 및 가져오기
+	FVector WidgetLocation = OverheadWidget->GetComponentLocation();
+
+	// 위젯에서 카메라를 바라보는 방향 벡터 계산
+	FVector LookAtVector = CameraLocation - WidgetLocation;
+
+	// 방향 벡터를 회전값으로 변환
+	FRotator TargetRotation = LookAtVector.Rotation();	
+	//TargetRotation.Pitch = 0.0f;
+	//TargetRotation.Roll = 0.0f;
+
+	OverheadWidget->SetWorldRotation(TargetRotation);
+}
+
 
 void AMineItem::ActivateItem(AActor* Activator)
 {
 	if (bHasExploded) return;
-
-
 	Super::ActivateItem(Activator);
+	
+	SetActorTickEnabled(true);// 
 
 	// ExplosionDelay 후 폭발 실행
 	GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &AMineItem::Explode, ExplosionDelay);
-
+	
 	bHasExploded = true;
+	
+	// UI
+	if (!OverheadWidget) 
+		return;
+	
+	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
+	if (!OverheadWidgetInstance) 
+		return;
+	
+	OverheadWidget->SetVisibility(true); 	
+	OverheadWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+	
+	
 }
 
 void AMineItem::Explode()
 {
+	SetActorTickEnabled(false);
+	
 	UParticleSystemComponent* Particle = nullptr;
 
 	/*if (GEngine)
@@ -102,8 +203,6 @@ void AMineItem::Explode()
 			{
 				Particle->DestroyComponent();
 			},
-
-
 			ExplosionDelay,
 			//1.0f, // destroy time in sec
 			false

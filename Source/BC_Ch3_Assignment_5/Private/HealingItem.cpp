@@ -19,8 +19,7 @@ void AHealingItem::ActivateItem(AActor* Activator)
 		{
 			// 캐릭터의 체력을 회복
 			PlayerCharacter->AddHealth(HealAmount);
-		}
-			
+		}		
 		
 		DestroyItem();
 	}
