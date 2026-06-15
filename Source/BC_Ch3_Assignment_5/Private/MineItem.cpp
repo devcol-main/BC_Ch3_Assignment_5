@@ -10,9 +10,9 @@
 
 AMineItem::AMineItem()
 {
-	ExplosionDelay = .0f;
-	ExplosionRadius = 0.f;
-	ExplosionDamage = .0f;
+	ExplosionDelay = 5.0f;
+	ExplosionRadius = 300.f;
+	ExplosionDamage = 50.0f;
 	ItemType = "Mine";
 	bHasExploded = false;
 
@@ -188,11 +188,23 @@ void AMineItem::Explode()
 
 	if (Particle)
 	{
-		/*if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("Particle destroyed wid delay %f"), ExplosionDelay));
-			*/
-
-
+		TWeakObjectPtr<UParticleSystemComponent> WeakParticle = Particle;
+		FTimerHandle DestroyParticleTimerHandle;
+		
+		GetWorld()->GetTimerManager().SetTimer(
+			DestroyParticleTimerHandle,
+			[WeakParticle]()
+			{
+				if (WeakParticle.IsValid())
+				{
+					WeakParticle->DestroyComponent();
+				}
+			},
+			2.0f,
+			false
+		);
+		
+		/*
 		FTimerHandle DestroyParticleTimerHandle;
 
 		GetWorld()->GetTimerManager().SetTimer(
@@ -208,5 +220,6 @@ void AMineItem::Explode()
 			//1.0f, // destroy time in sec
 			false
 		);
+		*/
 	}
 }

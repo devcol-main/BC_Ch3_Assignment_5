@@ -133,12 +133,14 @@ void AMainGameState::StartWave()
 	case 1:
 		{
 			WaveDuration += 30.0f;
+			
+			/*
 			GEngine->AddOnScreenDebugMessage(
 				-1,
 				2.0f,
 				FColor::Yellow,
 				FString::Printf(TEXT("WaveTimeAdded : %f"), WaveDuration)
-			);					
+			);			*/		
 			
 		}
 
@@ -146,12 +148,14 @@ void AMainGameState::StartWave()
 	case 2:
 		{
 			WaveDuration += 20.0f;
+			
+			/*
 			GEngine->AddOnScreenDebugMessage(
 				-1,
 				2.0f,
 				FColor::Yellow,
 				FString::Printf(TEXT("WaveTimeAdded : %f"), WaveDuration)
-			);			
+			);			*/
 			
 			
 		}
@@ -160,12 +164,14 @@ void AMainGameState::StartWave()
 	case 3:
 		{
 			WaveDuration += 15.0f;
+			
+			/*
 			GEngine->AddOnScreenDebugMessage(
 				-1,
 				2.0f,
 				FColor::Yellow,
 				FString::Printf(TEXT("WaveTimeAdded : %f"), WaveDuration)
-			);			
+			);		*/	
 		}
 
 	}
@@ -174,21 +180,25 @@ void AMainGameState::StartWave()
 
 	if (CurrentMapName == "BasicLevel")
 	{
+		
+		/*
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
-		                                 FString::Printf(TEXT("BasicLevel!")));
+		                                 FString::Printf(TEXT("BasicLevel!")));*/
 	}
 
 	if (CurrentMapName == "AdvancedLevel")
 	{
+		
+		/*
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
-		                                 FString::Printf(TEXT("AdvancedLevel!")));
+		                                 FString::Printf(TEXT("AdvancedLevel!")));*/
 	}
 
 
 	if (CurrentMapName == "IntermediateLevel")
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
-		                                 FString::Printf(TEXT("IntermediateLevel!")));
+		/*GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
+		                                 FString::Printf(TEXT("IntermediateLevel!")));*/
 	}
 
 
@@ -226,8 +236,8 @@ void AMainGameState::StartLevel()
 	//ItemToSpawn = 30;
 	
 	
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue,
-								 FString::Printf(TEXT("Total FoundVolumes: %i"), FoundVolumes.Num()));
+	/*GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue,
+								 FString::Printf(TEXT("Total FoundVolumes: %i"), FoundVolumes.Num()));*/
 
 	for (int32 i = 0; i < ItemToSpawn; i++)
 	{
@@ -461,8 +471,19 @@ void AMainGameState::UpdateHUD()
 				//
 				if (UTextBlock* LevelIndexText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("Wave"))))
 				{
+					FString WaveInfo = "";
+					
+					if (2 == CurrentWaveIndex)
+					{
+						WaveInfo = TEXT("Add Mine + Bomb");
+					}
+					else if (3 == CurrentWaveIndex)
+					{
+						WaveInfo = TEXT("MORE BOMB~");
+					}
+					
 					LevelIndexText->SetText(
-						FText::FromString(FString::Printf(TEXT("Wave: %d"), CurrentWaveIndex)));
+						FText::FromString(FString::Printf(TEXT("Wave: %d: %s" ), CurrentWaveIndex, *WaveInfo)));
 				}
 				
 				if (UTextBlock* LevelIndexText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("Coin"))))

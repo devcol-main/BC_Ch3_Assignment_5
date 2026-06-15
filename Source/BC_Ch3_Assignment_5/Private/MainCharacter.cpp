@@ -275,27 +275,19 @@ void AMainCharacter::StopSprint(const FInputActionValue& value)
 void AMainCharacter::DebuffSpeed(float Amount, float Duration)
 {
 	DebuffSpeedDuration = Duration;
-	float OriginalSpeed = NormalSpeed;
+	CachedOriginalSpeed = NormalSpeed;
 	
 	SetSpeed(Amount);	
-	//
-	
-	if (!OverheadWidget) 
-		return;
-	
-	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
-	
-	if (!OverheadWidgetInstance) 
-		return;
-	
-	UImage* SpeedDebuffImage = Cast<UImage>(OverheadWidgetInstance->GetWidgetFromName(TEXT("SpeedDebuffImage")));
-	if (SpeedDebuffImage)
-	{
-		SpeedDebuffImage->SetVisibility(ESlateVisibility::Visible);
-	}
 	
 	
-	//	
+	GetWorld()->GetTimerManager().SetTimer(
+		DebuffSpeedTimerHandle,
+		this,
+		&AMainCharacter::EndSpeedDebuff,
+		Duration,
+		false
+	);
+	/*
 	GetWorld()->GetTimerManager().SetTimer(
 		DebuffSpeedTimerHandle,
 		[this, OriginalSpeed]()
@@ -317,13 +309,63 @@ void AMainCharacter::DebuffSpeed(float Amount, float Duration)
 		},
 		Duration,
 		false
-	);
+	);*/
+	
+	
+	//
+	
+	if (!OverheadWidget) 
+		return;
+	
+	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
+	
+	if (!OverheadWidgetInstance) 
+		return;
+	
+	UImage* SpeedDebuffImage = Cast<UImage>(OverheadWidgetInstance->GetWidgetFromName(TEXT("SpeedDebuffImage")));
+	if (SpeedDebuffImage)
+	{
+		SpeedDebuffImage->SetVisibility(ESlateVisibility::Visible);
+	}
+	
+	//	
+	
 	
 	
 }
 
+void AMainCharacter::EndSpeedDebuff()
+{	
+	SetSpeed(CachedOriginalSpeed);
+	
+	if (!OverheadWidget) 
+		return;
+	
+	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
+	
+	if (!OverheadWidgetInstance) 
+		return;
+	
+	UImage* SpeedDebuffImage = Cast<UImage>(OverheadWidgetInstance->GetWidgetFromName(TEXT("SpeedDebuffImage")));
+	if (SpeedDebuffImage)
+	{
+		SpeedDebuffImage->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+
 void AMainCharacter::DebuffReverseControl(float Duration)
 {
+	bReverseControl = true;
+	
+	//	
+	GetWorld()->GetTimerManager().SetTimer(
+	DebuffReverseTimerHandle,
+	this,
+	&AMainCharacter::EndReverseControlDebuff,
+	Duration,
+	false
+	);
 	
 	if (!OverheadWidget) 
 		return;
@@ -337,32 +379,35 @@ void AMainCharacter::DebuffReverseControl(float Duration)
 	if (DebuffReverseControlImage)
 	{
 		DebuffReverseControlImage->SetVisibility(ESlateVisibility::Visible);
-		bReverseControl = true;
+		
 	}
 	
-	//	
-	GetWorld()->GetTimerManager().SetTimer(
-		DebuffReverseTimerHandle,
-		[this]()
-		{
-			
-			UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
 	
-			if (!OverheadWidgetInstance) 
-				return;
 	
-			UImage* DebuffReverseControlImage = Cast<UImage>(OverheadWidgetInstance->GetWidgetFromName(TEXT("DebuffReverseControlImage")));
-			if (DebuffReverseControlImage)
-			{
-				DebuffReverseControlImage->SetVisibility(ESlateVisibility::Collapsed);
-			}
-			
-			bReverseControl = false;
-	
-		},
-		Duration,
-		false
-	);
+}
+
+void AMainCharacter::EndReverseControlDebuff()
+{
+	bReverseControl = false;
+
+	if (!IsValid(OverheadWidget))
+	{
+		return;
+	}
+
+	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
+	if (!IsValid(OverheadWidgetInstance))
+	{
+		return;
+	}
+
+	UImage* DebuffReverseControlImage =
+		Cast<UImage>(OverheadWidgetInstance->GetWidgetFromName(TEXT("DebuffReverseControlImage")));
+
+	if (DebuffReverseControlImage)
+	{
+		DebuffReverseControlImage->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 void AMainCharacter::BuffJump(float Amount, float Duration)

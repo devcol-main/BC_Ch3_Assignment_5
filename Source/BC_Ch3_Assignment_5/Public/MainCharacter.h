@@ -52,9 +52,14 @@ public:
 	// 원래는 구조체 자체를 새로 만들어서 하는게 맞지만 우선 이렇게 하고 추후 다시 만들때 그렇게 깔끔하게 하자. 
 	UFUNCTION(BlueprintCallable, Category = "Buff/Debuff")
 	void DebuffSpeed(float Amount, float Duration);
+	
+	void EndSpeedDebuff();
+	
 
 	UFUNCTION(BlueprintCallable, Category = "Buff/Debuff")
 	void DebuffReverseControl(float Duration);
+	
+	void EndReverseControlDebuff();
 
 	UFUNCTION(BlueprintCallable, Category = "Buff/Debuff")
 	void BuffJump(float Amount, float Duration);
@@ -134,6 +139,8 @@ protected:
 
 private:
 	float DebuffSpeedDuration = 0.f;
+	float CachedOriginalSpeed= 0.f;
+	
 	float DebuffReverseDuration = 0.f;
 
 	float BuffJumpDuration = 0.f;
