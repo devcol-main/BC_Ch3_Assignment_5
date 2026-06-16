@@ -24,11 +24,11 @@ void ASpawnVolume::SpawnFixedItemsForWave(int32 WaveIndex)
 		return;
 	}
 	
-	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, 
+	/*GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, 
 		FString::Printf(TEXT("!!!!!SpawnFixedItemsForWave")));
 	
 	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, 
-		FString::Printf(TEXT("SelectedRow->Amount: %i"), SelectedRow->Amount));
+		FString::Printf(TEXT("SelectedRow->Amount: %i"), SelectedRow->Amount));*/
 
 	// TODO: SelectedRow 안의 ItemClass 유효성 확인
 	// TODO: SelectedRow 안의 스폰 개수 변수 확인
@@ -65,8 +65,8 @@ void ASpawnVolume::SpawnFixedItemsForWave(int32 WaveIndex)
 		
 		if (Row->WaveIndex == WaveIndex)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, 
-		FString::Printf(TEXT("SpawnItem")));
+			/*GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, 
+		FString::Printf(TEXT("SpawnItem")));*/
 			
 			for (int32 i = 0; i < Row->Amount; i++)
 			{
