@@ -59,7 +59,7 @@ public:
 	
 	FTimerHandle HUDUpdateTimerHandle;
 	
-	FTimerHandle WaveTimerHandle;
+	//FTimerHandle WaveTimerHandle;
 	
 	
 	// === Func ===
@@ -87,4 +87,10 @@ public:
 	void EndLevel();
 	void UpdateHUD();
 	
+	// === WAVE ===
+	void StartWave();
+	
+	
+private:
+	void UpdateTimer(FTimerHandle& TimerHandle, float DeltaTime);
 };

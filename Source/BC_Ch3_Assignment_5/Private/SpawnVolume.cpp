@@ -15,6 +15,124 @@ ASpawnVolume::ASpawnVolume()
 	SpawningBox->SetupAttachment(Scene);
 }
 
+void ASpawnVolume::SpawnFixedItemsForWave(int32 WaveIndex)
+{
+	FFixedItemSpawnRow* SelectedRow = GetFixedItemByWave(WaveIndex);
+
+	if (!SelectedRow)
+	{
+		return;
+	}
+	
+	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, 
+		FString::Printf(TEXT("!!!!!SpawnFixedItemsForWave")));
+	
+	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, 
+		FString::Printf(TEXT("SelectedRow->Amount: %i"), SelectedRow->Amount));
+
+	// TODO: SelectedRow 안의 ItemClass 유효성 확인
+	// TODO: SelectedRow 안의 스폰 개수 변수 확인
+	// 예: SpawnCount, Amount, ItemCount 등
+	
+	for (int32 i = 0; i < SelectedRow->Amount; i++)
+	{
+		// TODO: ItemClass를 UClass*로 가져오는 변수 선언
+		// TODO: SpawnItem 호출 위치
+		
+	}
+	//======================================================================
+	if (!FixedItemDataTable)
+	{
+		return;
+	}
+
+	TArray<FFixedItemSpawnRow*> AllRows;
+	static const FString ContextString(TEXT("FixedItemSpawnContext"));
+
+	FixedItemDataTable->GetAllRows(ContextString, AllRows);
+
+	if (AllRows.IsEmpty())
+	{
+		return;
+	}
+	
+	for (FFixedItemSpawnRow* Row : AllRows)
+	{
+		if (!Row)
+		{
+			continue;
+		}
+		
+		if (Row->WaveIndex == WaveIndex)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, 
+		FString::Printf(TEXT("SpawnItem")));
+			
+			for (int32 i = 0; i < Row->Amount; i++)
+			{
+				SpawnItem(Row->ItemClass);
+			}
+		}
+
+	}
+	
+	
+	
+}
+
+FFixedItemSpawnRow* ASpawnVolume::GetFixedItemByWave(int32 WaveIndex) const
+{
+	if (!FixedItemDataTable)
+	{
+		return nullptr;
+	}
+
+	TArray<FFixedItemSpawnRow*> AllRows;
+	static const FString ContextString(TEXT("FixedItemSpawnContext"));
+
+	FixedItemDataTable->GetAllRows(ContextString, AllRows);
+
+	if (AllRows.IsEmpty())
+	{
+		return nullptr;
+	}
+	
+	/*GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, 
+		FString::Printf(TEXT("WaveIndex: %d"), WaveIndex));*/
+
+	for (FFixedItemSpawnRow* Row : AllRows)
+	{
+		if (!Row)
+		{
+			continue;
+		}
+		
+		if (Row->WaveIndex == WaveIndex)
+		{
+			/*GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, 
+		FString::Printf(TEXT("Row->WaveIndex == WaveIndex: %d"), WaveIndex));*/
+			return Row;
+		}
+
+	}
+
+	return nullptr;
+}
+
+
+// ==
+AActor* ASpawnVolume::SpawnFixedItem()
+{
+	if (FFixedItemSpawnRow* SelectedRow = GetFixedItem())
+	{
+		if (UClass* ActualClass = SelectedRow->ItemClass.Get())
+		{
+			return SpawnItem(ActualClass);
+		}
+	}
+	return nullptr;
+}
+
 AActor* ASpawnVolume::SpawnRandomItem()
 {
 	if (FItemSpawnRow* SelectedRow = GetRandomItem())
@@ -42,6 +160,30 @@ FVector ASpawnVolume::GetRandomPointInVolume() const
 	);
 }
 
+FFixedItemSpawnRow* ASpawnVolume::GetFixedItem() const
+{
+	if (!FixedItemDataTable) 
+		return nullptr;
+	
+	TArray<FFixedItemSpawnRow*> AllRows;
+	static const FString ContextString(TEXT("FixedItemSpawnContext"));
+	FixedItemDataTable->GetAllRows(ContextString, AllRows);
+	
+	if (AllRows.IsEmpty()) 
+		return nullptr; 
+	
+	// 추후 check wave
+	for (FFixedItemSpawnRow* Row : AllRows)
+	{
+		if (Row)
+		{
+			return Row;
+		}
+	}	
+	
+	return nullptr;
+	
+}
 
 FItemSpawnRow* ASpawnVolume::GetRandomItem() const
 {
@@ -59,7 +201,7 @@ FItemSpawnRow* ASpawnVolume::GetRandomItem() const
 	// 2) 전체 확률 합 구하기
 	float TotalChance = 0.0f; // 초기화
 	for (const FItemSpawnRow* Row : AllRows) // AllRows 배열의 각 Row를 순회
-	{
+	{		
 		if (Row) // Row가 유효한지 확인
 		{
 			TotalChance += Row->SpawnChance; // SpawnChance 값을 TotalChance에 더하기

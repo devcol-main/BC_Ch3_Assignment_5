@@ -10,11 +10,15 @@
 #include "GameFramework/SpringArmComponent.h" 
 
 //
+#include "DebuffItem.h"
 #include "MainGameState.h"
+#include "Components/ProgressBar.h"
 #include "GameFramework/CharacterMovementComponent.h" // GetCharacterMovement() 사용을 위해
 #include "GameFramework/Actor.h"
 #include "Components/WidgetComponent.h"
 #include "Components/TextBlock.h"
+#include "Components/ProgressBar.h"
+#include "Components/Image.h"
 //#include "Kismet/GameplayStatics.h"
 
 AMainCharacter::AMainCharacter()
@@ -64,6 +68,27 @@ AMainCharacter::AMainCharacter()
 void AMainCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
+	
+	if (!OverheadWidgetInstance) 
+		return;
+
+	UImage* SpeedDebuffImage = Cast<UImage>(OverheadWidgetInstance->GetWidgetFromName(TEXT("SpeedDebuffImage")));
+	if (SpeedDebuffImage)
+	{
+		SpeedDebuffImage->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	
+	UImage* DebuffReverseControlImage = Cast<UImage>(OverheadWidgetInstance->GetWidgetFromName(TEXT("DebuffReverseControlImage")));
+	if (DebuffReverseControlImage)
+	{
+		DebuffReverseControlImage->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	
+	
+	
+	
 	UpdateOverheadHP();
 }
 
@@ -148,21 +173,44 @@ void AMainCharacter::Move(const FInputActionValue& value)
 
 	// Value는 Axis2D로 설정된 IA_Move의 입력값 (WASD)을 담고 있음
 	// 예) (X=1, Y=0) → 전진 / (X=-1, Y=0) → 후진 / (X=0, Y=1) → 오른쪽 / (X=0, Y=-1) → 왼쪽
-	const FVector2D MoveInput = value.Get<FVector2D>();
-
-	// IsNearlyZero
-	// 부동소수점들은 딱 0으로 안 떨어 질 수도 있기 때문에 작은 오차들은 0으로 처리 하기 위한 함수
-	if (!FMath::IsNearlyZero(MoveInput.X))
-	{		
-		// 캐릭터가 바라보는 방향(정면)으로 X축 이동
-		AddMovementInput(GetActorForwardVector(), MoveInput.X);
-	}
-
-	if (!FMath::IsNearlyZero(MoveInput.Y))
+	const FVector2D MoveInput = value.Get<FVector2D>();	
+	
+	// 기본
+	if (!bReverseControl)
 	{
-		// 캐릭터의 오른쪽 방향으로 Y축 이동
-		AddMovementInput(GetActorRightVector(), MoveInput.Y);
+		// IsNearlyZero
+		// 부동소수점들은 딱 0으로 안 떨어 질 수도 있기 때문에 작은 오차들은 0으로 처리 하기 위한 함수
+		if (!FMath::IsNearlyZero(MoveInput.X))
+		{		
+			// 캐릭터가 바라보는 방향(정면)으로 X축 이동
+			AddMovementInput(GetActorForwardVector(), MoveInput.X);
+		}
+
+		if (!FMath::IsNearlyZero(MoveInput.Y))
+		{
+			// 캐릭터의 오른쪽 방향으로 Y축 이동
+			AddMovementInput(GetActorRightVector(), MoveInput.Y);
+		}
 	}
+	else
+	{
+		//반전
+		
+		if (!FMath::IsNearlyZero(MoveInput.X))
+		{		
+			// 캐릭터가 바라보는 방향(정면)으로 X축 이동
+			AddMovementInput(GetActorForwardVector(), -MoveInput.X);
+		}
+
+		if (!FMath::IsNearlyZero(MoveInput.Y))
+		{
+			// 캐릭터의 오른쪽 방향으로 Y축 이동
+			AddMovementInput(GetActorRightVector(), -MoveInput.Y);
+		}
+		
+	}
+	
+	
 }
 
 void AMainCharacter::Look(const FInputActionValue& value)
@@ -220,6 +268,170 @@ void AMainCharacter::StopSprint(const FInputActionValue& value)
 	}
 }
 
+// ====
+
+
+
+void AMainCharacter::DebuffSpeed(float Amount, float Duration)
+{
+	DebuffSpeedDuration = Duration;
+	CachedOriginalSpeed = NormalSpeed;
+	
+	SetSpeed(Amount);	
+	
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		DebuffSpeedTimerHandle,
+		this,
+		&AMainCharacter::EndSpeedDebuff,
+		Duration,
+		false
+	);
+	/*
+	GetWorld()->GetTimerManager().SetTimer(
+		DebuffSpeedTimerHandle,
+		[this, OriginalSpeed]()
+		{
+			SetSpeed(OriginalSpeed);
+			
+			
+			UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
+	
+			if (!OverheadWidgetInstance) 
+				return;
+	
+			UImage* SpeedDebuffImage = Cast<UImage>(OverheadWidgetInstance->GetWidgetFromName(TEXT("SpeedDebuffImage")));
+			if (SpeedDebuffImage)
+			{
+				SpeedDebuffImage->SetVisibility(ESlateVisibility::Collapsed);
+			}
+	
+		},
+		Duration,
+		false
+	);*/
+	
+	
+	//
+	
+	if (!OverheadWidget) 
+		return;
+	
+	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
+	
+	if (!OverheadWidgetInstance) 
+		return;
+	
+	UImage* SpeedDebuffImage = Cast<UImage>(OverheadWidgetInstance->GetWidgetFromName(TEXT("SpeedDebuffImage")));
+	if (SpeedDebuffImage)
+	{
+		SpeedDebuffImage->SetVisibility(ESlateVisibility::Visible);
+	}
+	
+	//	
+	
+	
+	
+}
+
+void AMainCharacter::EndSpeedDebuff()
+{	
+	SetSpeed(CachedOriginalSpeed);
+	
+	if (!OverheadWidget) 
+		return;
+	
+	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
+	
+	if (!OverheadWidgetInstance) 
+		return;
+	
+	UImage* SpeedDebuffImage = Cast<UImage>(OverheadWidgetInstance->GetWidgetFromName(TEXT("SpeedDebuffImage")));
+	if (SpeedDebuffImage)
+	{
+		SpeedDebuffImage->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+
+void AMainCharacter::DebuffReverseControl(float Duration)
+{
+	bReverseControl = true;
+	
+	//	
+	GetWorld()->GetTimerManager().SetTimer(
+	DebuffReverseTimerHandle,
+	this,
+	&AMainCharacter::EndReverseControlDebuff,
+	Duration,
+	false
+	);
+	
+	if (!OverheadWidget) 
+		return;
+	
+	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
+	
+	if (!OverheadWidgetInstance) 
+		return;
+	
+	UImage* DebuffReverseControlImage = Cast<UImage>(OverheadWidgetInstance->GetWidgetFromName(TEXT("DebuffReverseControlImage")));
+	if (DebuffReverseControlImage)
+	{
+		DebuffReverseControlImage->SetVisibility(ESlateVisibility::Visible);
+		
+	}
+	
+	
+	
+}
+
+void AMainCharacter::EndReverseControlDebuff()
+{
+	bReverseControl = false;
+
+	if (!IsValid(OverheadWidget))
+	{
+		return;
+	}
+
+	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
+	if (!IsValid(OverheadWidgetInstance))
+	{
+		return;
+	}
+
+	UImage* DebuffReverseControlImage =
+		Cast<UImage>(OverheadWidgetInstance->GetWidgetFromName(TEXT("DebuffReverseControlImage")));
+
+	if (DebuffReverseControlImage)
+	{
+		DebuffReverseControlImage->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void AMainCharacter::BuffJump(float Amount, float Duration)
+{
+}
+
+// ====
+
+float AMainCharacter::GetSpeed() const
+{
+	//return GetCharacterMovement()->MaxWalkSpeed;	
+	
+	return NormalSpeed;	
+}
+
+void AMainCharacter::SetSpeed(float Amount)
+{
+	if (GetCharacterMovement())
+	{
+		NormalSpeed = Amount;
+		
+		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	}
+}
 
 float AMainCharacter::GetHealth() const
 {
@@ -242,6 +454,8 @@ void AMainCharacter::AddHealth(float  Amount)
 				 TEXT("Health Increased to: %f"), Health);
 	}*/
 }
+
+
 
 // 데미지 처리 함수
 float  AMainCharacter::TakeDamage(float  DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -300,5 +514,12 @@ void AMainCharacter::UpdateOverheadHP()
 	{
 		HPText->SetText(FText::FromString(FString::Printf(TEXT("%.0f / %.0f"), Health, MaxHealth)));
 	}
+	
+	if (UProgressBar* HPProgressBar = Cast<UProgressBar>(OverheadWidgetInstance->GetWidgetFromName(TEXT("HPProgressBar"))) )
+	{
+		HPProgressBar->SetPercent(Health / MaxHealth);		
+	}
+	
+	
 }
 

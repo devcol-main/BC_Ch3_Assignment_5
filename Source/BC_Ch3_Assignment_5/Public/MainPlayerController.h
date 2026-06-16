@@ -64,10 +64,19 @@ public:
 	// 게임 시작
 	UFUNCTION(BlueprintCallable, Category = "Menu")
 	void StartGame();
+	
+	//
+	UFUNCTION(BlueprintCallable, Category = "Menu")
+	void MenuLevel();
+	
+	UFUNCTION(BlueprintCallable, Category = "Menu")
+	void QuitGame();
 
 protected:
 	virtual void BeginPlay() override;
-
+	
+	
+	
 	/*
 	
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input", meta=(AllowPrivateAccess="true"))

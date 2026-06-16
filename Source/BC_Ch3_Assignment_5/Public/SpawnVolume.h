@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FixedItemSpawnRow.h"
 #include "GameFramework/Actor.h"
 #include "ItemSpawnRow.h"       // 우리가 정의한 구조체
 
@@ -18,9 +19,23 @@ public:
 	ASpawnVolume();
 	
 	UFUNCTION(BlueprintCallable, Category = "Spawning")	
-	AActor* SpawnRandomItem(); // 리턴 형식을 AActor* 로 변경
+	AActor* SpawnRandomItem(); 
+	
+	UFUNCTION(BlueprintCallable, Category = "FixedSpawning")	
+	AActor* SpawnFixedItem(); 
+	
+	FFixedItemSpawnRow* GetFixedItem() const;
+	
+	void SpawnFixedItemsForWave(int32 WaveIndex);
+	FFixedItemSpawnRow* GetFixedItemByWave(int32 WaveIndex) const;
 	
 protected:
+	//
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FixedSpawning")
+	UDataTable* FixedItemDataTable;
+	
+	
 	
 	//
 	FItemSpawnRow* GetRandomItem() const;

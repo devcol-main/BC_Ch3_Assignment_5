@@ -5,6 +5,8 @@
 #include "MineItem.generated.h"
 
 
+class UWidgetComponent;
+
 UCLASS()
 class BC_CH3_ASSIGNMENT_5_API AMineItem : public ABaseItem
 {
@@ -14,6 +16,9 @@ public:
 	AMineItem();
 	
 protected:
+	
+	
+	//
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
 	USphereComponent* ExplosionCollision;
 	
@@ -35,6 +40,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Mine")
 	int ExplosionDamage;
 	
+	//
+	virtual void Tick(float DeltaTime) override;
+	
+	void UpdateOverheadWidgetRotation();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+	UWidgetComponent* OverheadWidget = nullptr;
+	
+	//
+	
 	bool bHasExploded;
 	// 지뢰 발동 여부
 	FTimerHandle ExplosionTimerHandle;
@@ -47,4 +62,7 @@ protected:
 private:
 	
 	const FName CollisionProfile_OverlapAllDynamic = TEXT("OverlapAllDynamic");
+	
+	
+	void UpdateOverHeadWidget();
 };

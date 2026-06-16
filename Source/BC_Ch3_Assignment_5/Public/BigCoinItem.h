@@ -4,9 +4,7 @@
 #include "CoinItem.h"
 #include "BigCoinItem.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class BC_CH3_ASSIGNMENT_5_API ABigCoinItem : public ACoinItem
 {
