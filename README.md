@@ -1,6 +1,50 @@
-# BC_Ch3_Assignment_5
+# BC_Ch3_Assignment_5 | Unreal Engine 5  [UE5 C++] 
 
-##
+<p align="center">
+<img src="https://github.com/devcol-main/BC_Ch3_Assignment_5/blob/8f5d85cd77cdb3182769079fb6c5ba37aa3568c4/Record/BC_Ch3_Assignment_5_ingif.gif" width="50%">
+</p>
+
+</br>
+
+- YouTube: https://youtu.be/v2YNGF5HxqM
+
+## 🎮 Game Development Task List
+
+### 📋 Core Features
+
+* **Wave System per Level**
+  * Add 3 waves to each level.
+  * Adjust wave duration and item spawn rates.
+* **Wave Progress UI**
+  * Display the current wave status on the UI.
+* **Heads-Up Display (HUD)**
+  * Display score, remaining time, and health (HP).
+* **Game Navigation Menus**
+  * Main Menu: Start Game, Exit Game.
+  * Game Over Menu: Restart, Return to Main Menu.
+* **UI Styling**
+  * Change default fonts.
+  * Customize button color palettes.
+* **Multi-Stage Waves**
+  * Implement at least 3 distinct wave stages within each level.
+
+### 🚀 Advanced Features 
+
+* **Negative Item Effects**
+  * Add 2 debuff types: "Slowing" and "Reverse Control".
+  * Enable effect stacking functionality.
+  * Display active debuff statuses using UI images/icons.
+* **Advanced Wave UI**
+  * Display detailed real-time wave status on the HUD.
+* **UI Animations**
+  * Implement Widget Animations for UI transitions.
+  * Add Tweening or highlight effects to button hover states.
+* **Bomb Timer UI**
+  * Add a countdown timer UI dedicated to bombs.
+  * Apply a billboard effect so the UI faces the camera only when active (Player-view alignment).
+
+
+</br>
 
 ---
 
